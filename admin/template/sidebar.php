@@ -9,9 +9,9 @@
     <!-- Sidebar - Brand -->
     <a class="sidebar-brand d-flex align-items-center justify-content-center" href="index.php">
         <div class="sidebar-brand-icon rotate-n-15">
-            <i class="fas fa-cash-register"></i>
+            <i class="fas fa-desktop"></i>
         </div>
-        <div class="sidebar-brand-text mx-3">POS Codekop<sup></sup></div>
+        <div class="sidebar-brand-text mx-3">DSE WEB<sup></sup></div>
     </a>
 
     <!-- Divider -->
@@ -40,9 +40,14 @@
         <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
             <div class="bg-white py-2 collapse-inner rounded">
                 <!-- <h6 class="collapse-header">Custom Components:</h6> -->
-                <a class="collapse-item" href="index.php?page=barang">Barang</a>
-                <a class="collapse-item" href="index.php?page=kategori">Kategori</a>
-                <!-- <a class="collapse-item" href="index.php?page=user">User</a> -->
+                <a class="collapse-item" href="index.php?page=bahanbaku">Bahan Baku</a>
+                <a class="collapse-item" href="index.php?page=client">Client</a>
+                <a class="collapse-item" href="index.php?page=inventaris">Inventaris</a>
+                <a class="collapse-item" href="index.php?page=product">Product</a>
+                <a class="collapse-item" href="index.php?page=supplier">Supplier</a>
+                <a class="collapse-item" href="index.php?page=tempat_produksi">Tempat Produksi</a>
+                <!-- <a class="collapse-item" href="index.php?page=kategori">User</a> -->
+                <a class="collapse-item" href="index.php?page=user">User</a>
             </div>
         </div>
     </li>
@@ -56,6 +61,7 @@
         <div id="collapse3" class="collapse" aria-labelledby="heading3" data-parent="#accordionSidebar">
             <div class="bg-white py-2 collapse-inner rounded">
                 <!-- <h6 class="collapse-header">Custom Components:</h6> -->
+                <a class="collapse-item" href="index.php?page=transaksi_bahan_baku">Transaksi Bahan Baku</a>
                 <a class="collapse-item" href="index.php?page=jual">Transaksi Jual</a>
                 <a class="collapse-item" href="index.php?page=laporan">Laporan Penjualan</a>
             </div>

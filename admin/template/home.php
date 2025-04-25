@@ -1,7 +1,7 @@
 <h3>Dashboard</h3>
 <br/>
 <?php 
-	$sql=" select * from barang where stok <= 3";
+	$sql=" select * from tbl_bahan_baku where stok <= 3";
 	$row = $config -> prepare($sql);
 	$row -> execute();
 	$r = $row -> rowCount();

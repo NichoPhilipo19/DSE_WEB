@@ -7,19 +7,27 @@
 		$user = strip_tags($_POST['user']);
 		$pass = strip_tags($_POST['pass']);
 
-		$sql = 'select member.*, login.user, login.pass
-				from member inner join login on member.id_member = login.id_member
-				where user =? and pass = md5(?)';
+		// $sql = 'select member.*, login.user, login.pass
+		// 		from member inner join login on member.id_member = login.id_member
+		// 		where user =? and pass = md5(?)';
+		$sql = ' select * from tbl_user where username =? and password =?';
 		$row = $config->prepare($sql);
 		$row -> execute(array($user,$pass));
 		$jum = $row -> rowCount();
-		if($jum > 0){
-			$hasil = $row -> fetch();
+		if ($jum > 0) {
+			$hasil = $row->fetch();
+			
+			if ($hasil['status'] == 0) {
+				echo '<script>alert("Akun Anda tidak aktif!");history.go(-1);</script>';
+				exit;
+			}
+		
 			$_SESSION['admin'] = $hasil;
 			echo '<script>alert("Login Sukses");window.location="index.php"</script>';
-		}else{
+		} else {
 			echo '<script>alert("Login Gagal");history.go(-1);</script>';
 		}
+		
 	}
 ?>
 <!DOCTYPE html>
@@ -31,7 +39,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="">
     <meta name="author" content="">
-    <title>Login - POS Codekop</title>
+    <title>Login - DSE WEB</title>
     <!-- Custom fonts for this template-->
     <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
     <link
@@ -52,8 +60,10 @@
                         <!-- Nested Row within Card Body -->
 						<div class="p-5">
 							<div class="text-center">
-								<h4 class="h4 text-gray-900 mb-4"><b>Login POS Codekop</b></h4>
+								<img src="assets/img/logo-DSE.png" alt="Logo DSE" style="width: 100px; margin-bottom: 20px;">
+								<h4 class="h4 text-gray-900 mb-4"><b>Login DSE WEB</b></h4>
 							</div>
+
 							<form class="form-login" method="POST">
 								<div class="form-group">
 									<input type="text" class="form-control form-control-user" name="user"

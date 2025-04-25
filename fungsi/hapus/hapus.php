@@ -3,6 +3,75 @@
 session_start();
 if (!empty($_SESSION['admin'])) {
     require '../../config.php';
+
+    if (!empty(htmlentities($_GET['bahanbaku']))) {
+        $id= htmlentities($_GET['id']);
+        $data[] = $id;
+        $sql = 'DELETE FROM tbl_bahan_baku WHERE recid=?';
+        $row = $config -> prepare($sql);
+        $row -> execute($data);
+        echo '<script>window.location="../../index.php?page=bahanbaku&&remove=hapus-data"</script>';
+    }
+
+    if (!empty(htmlentities($_GET['client']))) {
+        $id= htmlentities($_GET['id']);
+        $data[] = $id;
+        $sql = 'DELETE FROM tbl_client WHERE recid=?';
+        $row = $config -> prepare($sql);
+        $row -> execute($data);
+        echo '<script>window.location="../../index.php?page=client&&remove=hapus-data"</script>';
+    }
+
+    if (!empty(htmlentities($_GET['inventaris']))) {
+        $id= htmlentities($_GET['id']);
+        $data[] = $id;
+        $sql = 'DELETE FROM tbl_inventaris WHERE recid=?';
+        $row = $config -> prepare($sql);
+        $row -> execute($data);
+        echo '<script>window.location="../../index.php?page=inventaris&&remove=hapus-data"</script>';
+    }
+
+    if (!empty(htmlentities($_GET['product']))) {
+        $id= htmlentities($_GET['id']);
+        $data[] = $id;
+        $sql = 'DELETE FROM tbl_product WHERE recid=?';
+        $row = $config -> prepare($sql);
+        $row -> execute($data);
+        echo '<script>window.location="../../index.php?page=product&&remove=hapus-data"</script>';
+    }
+
+    if (!empty($_GET['supplier'])) {
+        $id = $_GET['id'];
+    
+        $sql = "DELETE FROM tbl_supplier WHERE recid = ?";
+        $row = $config->prepare($sql);
+        $row->execute([$id]);
+    
+        echo '<script>window.location="../../index.php?page=supplier&remove=hapus";</script>';
+    }
+
+    if (!empty($_GET['tempat_produksi'])) {
+        $id = $_GET['id'];
+    
+        $sql = "DELETE FROM tbl_tmpt_produksi WHERE recid = ?";
+        $row = $config->prepare($sql);
+        $row->execute([$id]);
+    
+        echo '<script>window.location="../../index.php?page=tempat_produksi&remove=hapus";</script>';
+    }
+    
+    if (!empty($_GET['user'])) {
+        $id = $_GET['id'];
+    
+        $sql = "DELETE FROM tbl_user WHERE recid = ?";
+        $row = $config->prepare($sql);
+        $row->execute([$id]);
+    
+        echo '<script>window.location="../../index.php?page=user&remove=hapus";</script>';
+    }
+    
+
+
     if (!empty(htmlentities($_GET['kategori']))) {
         $id= htmlentities($_GET['id']);
         $data[] = $id;

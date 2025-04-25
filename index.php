@@ -1,3 +1,13 @@
+
+<!-- jQuery (harus duluan) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Bootstrap JS (harus setelah jQuery) -->
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<!-- Optional: Bootstrap CSS juga, kalau belum -->
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
 <?php 
 /*
   | Source Code Aplikasi Penjualan Barang Kasir dengan PHP & MYSQL

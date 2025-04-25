@@ -10,6 +10,152 @@ class view
         $this->db = $db;
     }
 
+    public function supplier()
+    {
+        $sql = "select * from tbl_supplier;";
+        $row = $this-> db -> prepare($sql);
+        $row -> execute();
+        $hasil = $row -> fetchAll();
+        return $hasil;
+    }
+
+    public function bahanbaku()
+    {
+        $sql = "SELECT 
+            bb.recid,
+            bb.nama_bb,
+            bb.`desc`,
+            bb.stok,
+            bb.satuan,
+            u.kode_uom,
+            u.nama_uom,
+            u.batas_aman,
+            s.nama_supplier
+        FROM tbl_bahan_baku bb
+        JOIN tbl_supplier s ON bb.supp_id = s.recid
+        JOIN uom u ON bb.satuan = u.kode_uom
+        ORDER BY bb.recid ASC;";
+        
+        $row = $this->db->prepare($sql);
+        $row->execute();
+        $hasil = $row->fetchAll();
+        return $hasil;
+    }
+    
+    
+    public function bahanbaku_edit($id)
+    {
+    $sql = "select 
+        bb.recid,
+        bb.nama_bb,
+        bb.`desc`,
+        bb.stok,
+        bb.satuan,
+        bb.supp_id,
+        s.nama_supplier
+        from tbl_bahan_baku bb
+        join tbl_supplier s ON bb.supp_id = s.recid 
+        where bb.recid =?;";
+        $row = $this-> db -> prepare($sql);
+        $row -> execute(array($id));
+        $hasil = $row -> fetch();
+        return $hasil;
+    }
+
+    public function clietList()
+    {
+        $sql = "SELECT * FROM tbl_client";
+        $row = $this-> db -> prepare($sql);
+        $row -> execute();
+        $hasil = $row -> fetchAll();
+        return $hasil;
+    }
+    
+    public function clientList_edit($id)
+    {
+        $sql = "select * from tbl_client where recid =?;";
+        $row = $this-> db -> prepare($sql);
+        $row -> execute(array($id));
+        $hasil = $row -> fetch();
+        return $hasil;
+    }
+
+    public function client_relasi_inven($id)
+    {
+        $sql = "SELECT 
+        r.recid,
+        r.client_id,
+        r.inven_id,
+        i.nama_inven,
+        r.jml_total,
+        r.jml_active,
+        r.jml_nonactive
+    FROM 
+        tbl_relasi_inven r
+    JOIN 
+        tbl_inventaris i ON r.inven_id = i.recid WHERE client_id =? ";
+        $row = $this-> db -> prepare($sql);
+        $row -> execute(array($id));
+        $hasil = $row -> fetchAll();
+        return $hasil;
+    }
+
+    public function invenList()
+    {
+        $sql = "SELECT * FROM tbl_inventaris";
+        $row = $this-> db -> prepare($sql);
+        $row -> execute();
+        $hasil = $row -> fetchAll();
+        return $hasil;
+    }
+
+    public function productList()
+    {
+        $sql = "SELECT * FROM tbl_product";
+        $row = $this-> db -> prepare($sql);
+        $row -> execute();
+        $hasil = $row -> fetchAll();
+        return $hasil;
+    }
+    public function supplierList()
+    {
+        $sql = "SELECT * FROM tbl_supplier";
+        $row = $this-> db -> prepare($sql);
+        $row -> execute();
+        $hasil = $row -> fetchAll();
+        return $hasil;
+    }
+    public function tmptProduksiList()
+    {
+        $sql = "SELECT * FROM tbl_tmpt_produksi";
+        $row = $this-> db -> prepare($sql);
+        $row -> execute();
+        $hasil = $row -> fetchAll();
+        return $hasil;
+    }
+    public function userList()
+    {
+        $sql = "SELECT * FROM tbl_user";
+        $row = $this-> db -> prepare($sql);
+        $row -> execute();
+        $hasil = $row -> fetchAll();
+        return $hasil;
+    }
+    public function transaksi_bahanbaku_list()
+    {
+
+        $sql = "SELECT t.*, b.nama_bb, u.nama_uom FROM tbl_transaksi_bb t
+                JOIN tbl_bahan_baku b ON t.bb_id = b.recid
+                JOIN tbl_uom u ON b.uom_id = u.recid
+                ORDER BY t.tanggal DESC";
+        $row = $this-> db -> prepare($sql);
+        $row -> execute();
+        $hasil = $row -> fetchAll();
+        return $hasil;
+    }
+
+
+
     public function member()
     {
         $sql = "select member.*, login.*
@@ -72,16 +218,16 @@ class view
         return $hasil;
     }
 
-    public function barang_edit($id)
-    {
-        $sql = "select barang.*, kategori.id_kategori, kategori.nama_kategori
-                from barang inner join kategori on barang.id_kategori = kategori.id_kategori
-                where id_barang=?";
-        $row = $this-> db -> prepare($sql);
-        $row -> execute(array($id));
-        $hasil = $row -> fetch();
-        return $hasil;
-    }
+    // public function barang_edit($id)
+    // {
+    //     $sql = "select barang.*, kategori.id_kategori, kategori.nama_kategori
+    //             from barang inner join kategori on barang.id_kategori = kategori.id_kategori
+    //             where id_barang=?";
+    //     $row = $this-> db -> prepare($sql);
+    //     $row -> execute(array($id));
+    //     $hasil = $row -> fetch();
+    //     return $hasil;
+    // }
 
     public function barang_cari($cari)
     {
@@ -135,12 +281,20 @@ class view
 
     public function barang_row()
     {
-        $sql = "select*from barang";
+        $sql = "select*from tbl_bahan_baku";
         $row = $this-> db -> prepare($sql);
         $row -> execute();
         $hasil = $row -> rowCount();
         return $hasil;
     }
+    // public function barang_row()
+    // {
+    //     $sql = "select*from barang";
+    //     $row = $this-> db -> prepare($sql);
+    //     $row -> execute();
+    //     $hasil = $row -> rowCount();
+    //     return $hasil;
+    // }
 
     public function barang_stok_row()
     {
