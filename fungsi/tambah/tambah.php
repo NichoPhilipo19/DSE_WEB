@@ -113,6 +113,28 @@ if (!empty($_SESSION['admin'])) {
     
         echo '<script>window.location="../../index.php?page=tempat_produksi&success=tambah";</script>';
     }
+    if (!empty($_GET['number_sequence'])) {
+        // Ambil dan sanitasi input
+        $kode_perusahaan    = htmlentities($_POST['kode_pt']);
+        $prefix     = htmlentities($_POST['prefix']);
+        $bulan      = intval($_POST['bulan']);
+        $tahun      = intval($_POST['tahun']);
+        $last_number  = $_POST['numbering'];
+    
+        // Data yang akan disisipkan ke dalam tabel
+        $data = [$prefix, $kode_perusahaan, $bulan, $tahun, $last_number];
+    
+        // Query insert
+        $sql = "INSERT INTO number_sequences (prefix, kode_perusahaan, bulan, tahun, last_number)
+                VALUES (?, ?, ?, ?, ?)";
+    
+        $row = $config->prepare($sql);
+        $row->execute($data);
+    
+        // Redirect dengan pesan sukses
+        echo '<script>window.location="../../index.php?page=number_sequence&success=tambah";</script>';
+    }
+    
 
     if (!empty($_GET['user'])) {
         $username = htmlentities($_POST['username']);

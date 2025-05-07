@@ -75,7 +75,7 @@
                                 <td><?php echo $isi['satuan']; ?></td>
                                 <td>
                                     <?php if ($isi['stok'] <=  '3') { ?>
-                                        <form method="POST" action="fungsi/edit/edit.php?stok=edit">
+                                        <form method="POST" action="index.php?page=transaksi_bahan_baku&openModal=tambah&recid=<?php echo $isi['recid']; ?>">
                                             <!-- <input type="text" name="restok" class="form-control">
                                             <input type="hidden" name="id" value="<?php echo $isi['recid']; ?>"
                                                 class="form-control"> -->

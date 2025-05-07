@@ -46,6 +46,7 @@
                 <a class="collapse-item" href="index.php?page=product">Product</a>
                 <a class="collapse-item" href="index.php?page=supplier">Supplier</a>
                 <a class="collapse-item" href="index.php?page=tempat_produksi">Tempat Produksi</a>
+                <a class="collapse-item" href="index.php?page=number_sequence">Number Sequence</a>
                 <!-- <a class="collapse-item" href="index.php?page=kategori">User</a> -->
                 <a class="collapse-item" href="index.php?page=user">User</a>
             </div>

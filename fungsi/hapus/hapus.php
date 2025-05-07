@@ -70,6 +70,17 @@ if (!empty($_SESSION['admin'])) {
         echo '<script>window.location="../../index.php?page=user&remove=hapus";</script>';
     }
     
+    if (!empty($_GET['number_sequence'])) {
+        $id = $_GET['id'];
+    
+        $sql = "DELETE FROM number_sequences WHERE recid = ?";
+        $row = $config->prepare($sql);
+        $row->execute([$id]);
+    
+        echo '<script>window.location="../../index.php?page=number_sequence&remove=hapus";</script>';
+    }
+    
+
 
 
     if (!empty(htmlentities($_GET['kategori']))) {

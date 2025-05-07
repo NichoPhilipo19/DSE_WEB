@@ -141,13 +141,20 @@ class view
         $hasil = $row -> fetchAll();
         return $hasil;
     }
+    public function numberSequence()
+    {
+        $sql = "SELECT * FROM number_sequences";
+        $row = $this-> db -> prepare($sql);
+        $row -> execute();
+        $hasil = $row -> fetchAll();
+        return $hasil;
+    }
     public function transaksi_bahanbaku_list()
     {
-
-        $sql = "SELECT t.*, b.nama_bb, u.nama_uom FROM tbl_transaksi_bb t
-                JOIN tbl_bahan_baku b ON t.bb_id = b.recid
-                JOIN tbl_uom u ON b.uom_id = u.recid
-                ORDER BY t.tanggal DESC";
+        // $sql = "SELECT t.* FROM tbl_transaksi_bahanbaku as t";
+        $sql = "SELECT t.*, b.nama_bb, u.kode_uom FROM tbl_transaksi_bahanbaku as t
+                JOIN tbl_bahan_baku as b ON t.bahanbaku_id = b.recid
+                JOIN uom as u ON b.satuan = u.kode_uom ORDER BY t.tgl DESC";
         $row = $this-> db -> prepare($sql);
         $row -> execute();
         $hasil = $row -> fetchAll();

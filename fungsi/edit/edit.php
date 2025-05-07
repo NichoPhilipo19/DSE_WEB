@@ -122,7 +122,7 @@ if (!empty($_SESSION['admin'])) {
         $data[] = $grade;
         $data[] = $level;
         $data[] = $recid;
-        
+
         $sql = 'UPDATE tbl_product SET nama_product=?, desc_product=?, grade=?, level=? WHERE recid=?';
         $row = $config->prepare($sql);
         $row->execute($data);
@@ -130,56 +130,74 @@ if (!empty($_SESSION['admin'])) {
         echo '<script>window.location="../../index.php?page=product&success=edit";</script>';
     }
 
-if (!empty($_GET['supplier'])) {
-    $recid           = $_POST['recid'];
-    $nama_supplier   = htmlentities($_POST['nama_supplier']);
-    $alamat          = htmlentities($_POST['alamat']);
-    $status          = intval($_POST['status']);
-    $email           = htmlentities($_POST['email']);
-    $no_telp         = (int) $_POST['no_telp'];
-    $fax             = (int) $_POST['fax'];
+    if (!empty($_GET['supplier'])) {
+        $recid           = $_POST['recid'];
+        $nama_supplier   = htmlentities($_POST['nama_supplier']);
+        $alamat          = htmlentities($_POST['alamat']);
+        $status          = intval($_POST['status']);
+        $email           = htmlentities($_POST['email']);
+        $no_telp         = (int) $_POST['no_telp'];
+        $fax             = (int) $_POST['fax'];
 
-    $data = [$nama_supplier, $alamat, $status, $email, $no_telp, $fax, $recid];
+        $data = [$nama_supplier, $alamat, $status, $email, $no_telp, $fax, $recid];
 
-    $sql = 'UPDATE tbl_supplier SET nama_supplier=?, alamat=?, status=?, email=?, no_telp=?, fax=? WHERE recid=?';
-    $row = $config->prepare($sql);
-    $row->execute($data);
+        $sql = 'UPDATE tbl_supplier SET nama_supplier=?, alamat=?, status=?, email=?, no_telp=?, fax=? WHERE recid=?';
+        $row = $config->prepare($sql);
+        $row->execute($data);
 
-    echo '<script>window.location="../../index.php?page=supplier&success=edit";</script>';
-}
+        echo '<script>window.location="../../index.php?page=supplier&success=edit";</script>';
+    }
 
-if (!empty($_GET['tempat_produksi'])) {
-    $recid  = $_POST['recid'];
-    $nama   = htmlentities($_POST['nama']);
-    $alamat = htmlentities($_POST['alamat']);
+    if (!empty($_GET['tempat_produksi'])) {
+        $recid  = $_POST['recid'];
+        $nama   = htmlentities($_POST['nama']);
+        $alamat = htmlentities($_POST['alamat']);
 
-    $data = [$nama, $alamat, $recid];
+        $data = [$nama, $alamat, $recid];
 
-    $sql = "UPDATE tbl_tmpt_produksi SET nama=?, alamat=? WHERE recid=?";
-    $row = $config->prepare($sql);
-    $row->execute($data);
+        $sql = "UPDATE tbl_tmpt_produksi SET nama=?, alamat=? WHERE recid=?";
+        $row = $config->prepare($sql);
+        $row->execute($data);
 
-    echo '<script>window.location="../../index.php?page=tempat_produksi&success=edit";</script>';
-}
+        echo '<script>window.location="../../index.php?page=tempat_produksi&success=edit";</script>';
+    }
 
-if (!empty($_GET['user'])) {
-    $recid    = $_POST['recid'];
-    // $username = htmlentities($_POST['username']);
-    // $nama     = htmlentities($_POST['nama']);
-    $email    = htmlentities($_POST['email']);
-    $status   = intval($_POST['status']);
-    // $level    = htmlentities($_POST['level']);
-    $alamat   = htmlentities($_POST['alamat']);
+    if (!empty($_GET['user'])) {
+        $recid    = $_POST['recid'];
+        // $username = htmlentities($_POST['username']);
+        // $nama     = htmlentities($_POST['nama']);
+        $email    = htmlentities($_POST['email']);
+        $status   = intval($_POST['status']);
+        // $level    = htmlentities($_POST['level']);
+        $alamat   = htmlentities($_POST['alamat']);
 
-    $data = [  $email, $status, $alamat, $recid];
-    // $data = [$username, $nama, $email, $status, $level, $alamat, $recid];
+        $data = [$email, $status, $alamat, $recid];
+        // $data = [$username, $nama, $email, $status, $level, $alamat, $recid];
 
-    $sql = "UPDATE tbl_user SET email=?, status=?, alamat=? WHERE recid=?";
-    $row = $config->prepare($sql);
-    $row->execute($data);
+        $sql = "UPDATE tbl_user SET email=?, status=?, alamat=? WHERE recid=?";
+        $row = $config->prepare($sql);
+        $row->execute($data);
 
-    echo '<script>window.location="../../index.php?page=user&success=edit";</script>';
-}
+        echo '<script>window.location="../../index.php?page=user&success=edit";</script>';
+    }
+
+    if (!empty($_GET['number_sequence'])) {
+        // Ambil dan sanitasi input
+        $recid      = htmlentities($_POST['id']);
+        $numbering  = $_POST['numbering'];
+
+        // Susun data untuk update
+        $data[] = $numbering;
+        $data[] = $recid;
+
+        // Query update (yang bisa diubah hanya numbering)
+        $sql = "UPDATE number_sequences SET last_number = ? WHERE recid = ?";
+        $row = $config->prepare($sql);
+        $row->execute($data);
+
+        // Redirect ke halaman awal dengan pesan sukses
+        echo '<script>window.location="../../index.php?page=number_sequence&success=edit";</script>';
+    }
 
 
 
