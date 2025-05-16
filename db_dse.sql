@@ -2,8 +2,8 @@
 -- version 5.0.1
 -- https://www.phpmyadmin.net/
 --
--- Host: 127.0.0.1
--- Generation Time: May 16, 2025 at 06:18 AM
+-- Host: localhost
+-- Generation Time: May 16, 2025 at 04:29 PM
 -- Server version: 10.4.11-MariaDB
 -- PHP Version: 7.3.15
 
@@ -42,7 +42,8 @@ CREATE TABLE `number_sequences` (
 --
 
 INSERT INTO `number_sequences` (`recid`, `prefix`, `kode_perusahaan`, `bulan`, `tahun`, `last_number`) VALUES
-(1, 'PO', 'DSE', 1, 2025, '0000');
+(1, 'PO', 'DSE', 1, 2025, '1'),
+(7, 'INV', 'DSE', 1, 2025, '0000');
 
 -- --------------------------------------------------------
 
@@ -64,8 +65,8 @@ CREATE TABLE `tbl_bahan_baku` (
 --
 
 INSERT INTO `tbl_bahan_baku` (`recid`, `nama_bb`, `desc`, `stok`, `satuan`, `supp_id`) VALUES
-(2, 'bahan baku', 'tes', 100, 'kg', 1),
-(3, 'bahan baku', 'tes', 100, 'kg', 1),
+(2, 'bahan baku', 'tes', 100, 'Kg', 1),
+(3, 'bahan baku  TOKO B', 'bahan baku TOKO B', 6100, 'Kg', 2),
 (8, 'tes', 'tes', 0, 'Liter', 1),
 (9, 'tess', 'sasaas', 0, 'Kg', 1);
 
@@ -223,20 +224,31 @@ CREATE TABLE `tbl_transaksi_bahanbaku` (
   `uom` varchar(20) NOT NULL,
   `bahanbaku_id` int(11) DEFAULT NULL,
   `supp_id` int(11) DEFAULT NULL,
-  `pembayaran` varchar(50) DEFAULT NULL,
+  `jumlah_bayar` double DEFAULT NULL,
+  `bukti_file` varchar(255) DEFAULT NULL,
+  `tgl_byr` date NOT NULL,
   `status_bayar` tinyint(1) DEFAULT NULL,
+  `qty_terima` int(11) DEFAULT NULL,
   `tgl_jatuhtempo` date DEFAULT NULL,
-  `sudah_diterima` tinyint(4) NOT NULL
+  `sudah_diterima` tinyint(4) NOT NULL DEFAULT 0,
+  `catatan_terima` varchar(100) NOT NULL,
+  `createdby` varchar(50) DEFAULT NULL,
+  `modifiedby` varchar(50) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `tbl_transaksi_bahanbaku`
 --
 
-INSERT INTO `tbl_transaksi_bahanbaku` (`recid`, `tgl`, `no_po`, `no_invoice`, `buktibayar`, `harga`, `pengiriman`, `status`, `qty`, `uom`, `bahanbaku_id`, `supp_id`, `pembayaran`, `status_bayar`, `tgl_jatuhtempo`, `sudah_diterima`) VALUES
-(1, '2025-05-07', '202020', '20202', 'tes', '20000.00', 'tes', 0, 100, '', 2, 1, 'tf', 1, '2025-05-07', 0),
-(11, '2025-05-10', NULL, NULL, NULL, NULL, NULL, 0, 500, 'Kg', 9, NULL, NULL, NULL, NULL, 0),
-(12, '2025-05-10', NULL, NULL, NULL, NULL, NULL, 0, 500, 'Kg', 9, NULL, NULL, NULL, NULL, 0);
+INSERT INTO `tbl_transaksi_bahanbaku` (`recid`, `tgl`, `no_po`, `no_invoice`, `buktibayar`, `harga`, `pengiriman`, `status`, `qty`, `uom`, `bahanbaku_id`, `supp_id`, `jumlah_bayar`, `bukti_file`, `tgl_byr`, `status_bayar`, `qty_terima`, `tgl_jatuhtempo`, `sudah_diterima`, `catatan_terima`, `createdby`, `modifiedby`) VALUES
+(1, '2025-05-07', '202020', '20202', 'tes', '20000.00', 'tes', 0, 100, '', 2, 1, NULL, NULL, '0000-00-00', 1, NULL, '2025-05-07', 0, '', NULL, NULL),
+(11, '2025-05-10', NULL, NULL, NULL, NULL, NULL, 0, 500, 'Kg', 9, NULL, NULL, NULL, '0000-00-00', NULL, NULL, NULL, 0, '', NULL, NULL),
+(12, '2025-05-10', NULL, NULL, NULL, NULL, NULL, 0, 500, 'Kg', 9, NULL, NULL, NULL, '0000-00-00', NULL, NULL, NULL, 0, '', NULL, NULL),
+(13, '2025-05-16', '0001/PO/DSE/1/2025', NULL, NULL, NULL, NULL, 1, 44, 'Kg', 3, NULL, NULL, NULL, '0000-00-00', NULL, NULL, NULL, 0, '', 'admin', 'admin'),
+(14, '2025-05-16', NULL, NULL, NULL, NULL, NULL, 0, 44, 'Kg', 3, NULL, NULL, NULL, '0000-00-00', NULL, NULL, NULL, 0, '', 'admin', 'admin'),
+(15, '2025-05-16', '0005/PO/DSE/1/2025', '0001/PO/tokoooo/1/2025', NULL, '5000.00', NULL, 2, 5556, 'Liter', 3, NULL, 100000, 'Screenshot 2025-04-21 at 04.48.17.png', '2025-05-16', 1, 6000, NULL, 0, 'tes', 'admin', 'admin'),
+(16, '2025-05-16', NULL, NULL, NULL, NULL, NULL, 0, 44444, 'Kg', 3, 1, NULL, NULL, '0000-00-00', NULL, NULL, NULL, 0, '', 'admin', 'admin'),
+(17, '2025-05-16', '0004/PO/DSE/1/2025', '0004/PO/TOKO-B/1/2025', NULL, '1000000.00', NULL, 1, 906, 'Kg', 3, 2, NULL, NULL, '0000-00-00', NULL, NULL, NULL, 0, '', 'admin', 'admin');
 
 -- --------------------------------------------------------
 
@@ -293,7 +305,9 @@ CREATE TABLE `transaksi_keluar` (
   `product_id` int(11) DEFAULT NULL,
   `tgl_produksi` date DEFAULT NULL,
   `tmpt_produksi_id` int(11) DEFAULT NULL,
-  `status_produksi` tinyint(1) DEFAULT NULL
+  `status_produksi` tinyint(1) DEFAULT NULL,
+  `createdby` varchar(50) DEFAULT NULL,
+  `modifiedby` varchar(50) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
@@ -333,7 +347,8 @@ ALTER TABLE `number_sequences`
 --
 ALTER TABLE `tbl_bahan_baku`
   ADD PRIMARY KEY (`recid`),
-  ADD KEY `supp_id` (`supp_id`);
+  ADD KEY `supp_id` (`supp_id`),
+  ADD KEY `fk_bahanbaku_uom` (`satuan`);
 
 --
 -- Indexes for table `tbl_client`
@@ -381,7 +396,9 @@ ALTER TABLE `tbl_tmpt_produksi`
 ALTER TABLE `tbl_transaksi_bahanbaku`
   ADD PRIMARY KEY (`recid`),
   ADD KEY `bahanbaku_id` (`bahanbaku_id`),
-  ADD KEY `supp_id` (`supp_id`);
+  ADD KEY `supp_id` (`supp_id`),
+  ADD KEY `fk_transaksibb_createdby` (`createdby`),
+  ADD KEY `fk_transaksibb_modifiedby` (`modifiedby`);
 
 --
 -- Indexes for table `tbl_user`
@@ -399,7 +416,9 @@ ALTER TABLE `transaksi_keluar`
   ADD KEY `inven_id` (`inven_id`),
   ADD KEY `client_id` (`client_id`),
   ADD KEY `product_id` (`product_id`),
-  ADD KEY `tmpt_produksi_id` (`tmpt_produksi_id`);
+  ADD KEY `tmpt_produksi_id` (`tmpt_produksi_id`),
+  ADD KEY `fk_transaksikeluar_createdby` (`createdby`),
+  ADD KEY `fk_transaksikeluar_modifiedby` (`modifiedby`);
 
 --
 -- Indexes for table `uom`
@@ -416,7 +435,7 @@ ALTER TABLE `uom`
 -- AUTO_INCREMENT for table `number_sequences`
 --
 ALTER TABLE `number_sequences`
-  MODIFY `recid` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `recid` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `tbl_bahan_baku`
@@ -464,7 +483,7 @@ ALTER TABLE `tbl_tmpt_produksi`
 -- AUTO_INCREMENT for table `tbl_transaksi_bahanbaku`
 --
 ALTER TABLE `tbl_transaksi_bahanbaku`
-  MODIFY `recid` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `recid` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `tbl_user`
@@ -492,6 +511,7 @@ ALTER TABLE `uom`
 -- Constraints for table `tbl_bahan_baku`
 --
 ALTER TABLE `tbl_bahan_baku`
+  ADD CONSTRAINT `fk_bahanbaku_uom` FOREIGN KEY (`satuan`) REFERENCES `uom` (`kode_uom`) ON UPDATE CASCADE,
   ADD CONSTRAINT `tbl_bahan_baku_ibfk_1` FOREIGN KEY (`supp_id`) REFERENCES `tbl_supplier` (`recid`);
 
 --
@@ -505,6 +525,8 @@ ALTER TABLE `tbl_relasi_inven`
 -- Constraints for table `tbl_transaksi_bahanbaku`
 --
 ALTER TABLE `tbl_transaksi_bahanbaku`
+  ADD CONSTRAINT `fk_transaksibb_createdby` FOREIGN KEY (`createdby`) REFERENCES `tbl_user` (`username`) ON DELETE SET NULL ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_transaksibb_modifiedby` FOREIGN KEY (`modifiedby`) REFERENCES `tbl_user` (`username`) ON DELETE SET NULL ON UPDATE CASCADE,
   ADD CONSTRAINT `tbl_transaksi_bahanbaku_ibfk_1` FOREIGN KEY (`bahanbaku_id`) REFERENCES `tbl_bahan_baku` (`recid`),
   ADD CONSTRAINT `tbl_transaksi_bahanbaku_ibfk_2` FOREIGN KEY (`supp_id`) REFERENCES `tbl_supplier` (`recid`);
 
@@ -512,6 +534,9 @@ ALTER TABLE `tbl_transaksi_bahanbaku`
 -- Constraints for table `transaksi_keluar`
 --
 ALTER TABLE `transaksi_keluar`
+  ADD CONSTRAINT `fk_transaksi_product` FOREIGN KEY (`product_id`) REFERENCES `tbl_product` (`recid`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_transaksikeluar_createdby` FOREIGN KEY (`createdby`) REFERENCES `tbl_user` (`username`) ON DELETE SET NULL ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_transaksikeluar_modifiedby` FOREIGN KEY (`modifiedby`) REFERENCES `tbl_user` (`username`) ON DELETE SET NULL ON UPDATE CASCADE,
   ADD CONSTRAINT `transaksi_keluar_ibfk_1` FOREIGN KEY (`inven_id`) REFERENCES `tbl_inventaris` (`recid`),
   ADD CONSTRAINT `transaksi_keluar_ibfk_2` FOREIGN KEY (`client_id`) REFERENCES `tbl_client` (`recid`),
   ADD CONSTRAINT `transaksi_keluar_ibfk_3` FOREIGN KEY (`product_id`) REFERENCES `tbl_bahan_baku` (`recid`),

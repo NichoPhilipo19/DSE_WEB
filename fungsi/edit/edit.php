@@ -199,7 +199,7 @@ if (!empty($_SESSION['admin'])) {
         echo '<script>window.location="../../index.php?page=number_sequence&success=edit";</script>';
     }
 
-    if (!empty($_GET['transaksi_bahanbaku'])) {
+    if (!empty($_GET['transaksi_bahanbaku']) && $_GET['transaksi_bahanbaku'] == 'edit') {
         $recid          = $_POST['edit_revid'];
         $bahanbaku_id   = htmlentities($_POST['bahanbaku_id']);
         $supp_id        = htmlentities($_POST['supp_id']);
@@ -276,10 +276,10 @@ if (!empty($_SESSION['admin'])) {
     }
 
     if (isset($_GET['bukti_bayar']) && $_GET['bukti_bayar'] === 'submit') {
-        print_r($_POST);
         $recid        = $_POST['recid'];
         $tgl_bayar    = $_POST['tgl_bayar'];
         $jumlah_bayar = preg_replace('/[^\d]/', '', $_POST['jumlah_bayar']); // hilangkan format titik/koma
+        $jumlah_bayar_fix = intval($jumlah_bayar);
 
 
         $upload_dir = '../../assets/bukti_bayar/';
@@ -297,11 +297,11 @@ if (!empty($_SESSION['admin'])) {
         if (move_uploaded_file($_FILES['bukti_file']['tmp_name'], $target)) {
             try {
                 $sql = "UPDATE tbl_transaksi_bahanbaku 
-                        SET tgl_byr = ?, jumlah_bayar = ?, bukti_file = ?, 
+                        SET tgl_byr = ?, jumlah_bayar = ?, bukti_file = ?, status_bayar = 1
                         WHERE recid = ?";
                 $stmt = $config->prepare($sql);
-                $stmt->execute([$tgl_bayar, $jumlah_bayar, $filename, $recid]);
-
+                $stmt->execute([$tgl_bayar, $jumlah_bayar_fix, $filename, $recid]);
+                // print_r([$tgl_bayar, $jumlah_bayar_fix, $filename, $recid]);
                 header("Location: ../../index.php?page=transaksi_bahan_baku&success=bukti");
                 exit;
             } catch (PDOException $e) {
@@ -309,6 +309,59 @@ if (!empty($_SESSION['admin'])) {
             }
         } else {
             echo "<script>alert('Upload gagal.'); window.history.back();</script>";
+        }
+    }
+
+    if (isset($_GET['transaksi_bahanbaku']) && $_GET['transaksi_bahanbaku'] === 'terima_barang') {
+
+
+        $id             = htmlentities($_POST['id']);
+        $qty_aktual     = isset($_POST['qty_aktual']) ? floatval($_POST['qty_aktual']) : 0;
+        $qty_po         = isset($_POST['qty']) ? floatval($_POST['qty']) : 0;
+        $catatan        = htmlentities($_POST['catatan']);
+        $bahanbakuid    = htmlentities($_POST['bahanbakuid']);
+
+        if ($qty_aktual < $qty_po) {
+            echo "<script>alert('Quantity yang di terima kurang, silahkan hubungi supplier untuk meminta Quantity yang kurang'); window.history.back();</script>";
+            $sql = "UPDATE tbl_transaksi_bahanbaku
+                SET qty_terima = ?, catatan_terima = ?
+                WHERE recid = ?";
+
+            $stmt = $config->prepare($sql);
+            $exec = $stmt->execute([$qty_aktual, $catatan, $id]);
+
+            if ($exec) {
+                header("Location: ../../index.php?page=transaksi_bahan_baku&success=terima");
+            } else {
+                echo "Gagal update: ";
+                print_r($stmt->errorInfo());
+            }
+        } else {
+            $sql = "UPDATE tbl_transaksi_bahanbaku
+                SET qty_terima = ?, catatan_terima = ?, status = 2
+                WHERE recid = ?";
+
+            $stmt = $config->prepare($sql);
+            $exec = $stmt->execute([$qty_aktual, $catatan, $id]);
+
+            if ($exec) {
+
+                $sql_seq = "SELECT * FROM tbl_bahan_baku WHERE recid = $bahanbakuid LIMIT 1";
+                $stmt_seq = $config->prepare($sql_seq);
+                $stmt_seq->execute();
+                $seq = $stmt_seq->fetch();
+                $lastStok = $seq["stok"];
+                $updateStok = $lastStok + $qty_aktual;
+
+                $sql = 'UPDATE tbl_bahan_baku SET stok= ? WHERE recid=?';
+                $row = $config->prepare($sql);
+                $row->execute([$updateStok, $bahanbakuid]);
+
+                header("Location: ../../index.php?page=transaksi_bahan_baku&success=terima");
+            } else {
+                echo "Gagal update: ";
+                print_r($stmt->errorInfo());
+            }
         }
     }
 

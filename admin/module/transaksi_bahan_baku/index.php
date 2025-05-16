@@ -11,7 +11,22 @@ $bahanbaku = $lihat->bahanbaku();
 <?php } ?>
 <?php if (isset($_GET['success']) && $_GET['success'] == 'order') { ?>
     <div class="alert alert-success">
-        <p>Status berhasil diubah menjadi In Order!</p>
+        <p>Status berhasil diubah menjadi In Order !</p>
+    </div>
+<?php } ?>
+<?php if (isset($_GET['success']) && $_GET['success'] == 'invoice') { ?>
+    <div class="alert alert-success">
+        <p>Invoice telah di tambahkan</p>
+    </div>
+<?php } ?>
+<?php if (isset($_GET['success']) && $_GET['success'] == 'bukti') { ?>
+    <div class="alert alert-success">
+        <p>Pembayaran telah di update</p>
+    </div>
+<?php } ?>
+<?php if (isset($_GET['success']) && $_GET['success'] == 'terima') { ?>
+    <div class="alert alert-success">
+        <p>Status berhasil diubah menjadi Finish !</p>
     </div>
 <?php } ?>
 
@@ -32,9 +47,12 @@ $bahanbaku = $lihat->bahanbaku();
                     <th>Nama Bahan Baku</th>
                     <th>Qty</th>
                     <th>UOM</th>
-                    <th>harga</th>
+                    <th>Harga</th>
                     <th>Status</th>
                     <th><small>Bukti<br>Pembayaran</small></th>
+                    <th>Jumlah Pembayaran</th>
+                    <th>Qty Aktual</th>
+                    <th>Catatan Terima</th>
                     <th>Aksi</th>
                 </tr>
             </thead>
@@ -63,8 +81,8 @@ $bahanbaku = $lihat->bahanbaku();
                                 Draft
                             <?php } else if ($row['status'] == 1) { ?>
                                 In Order
-                            <?php } else if ($row['status'] == 3) { ?>
-                                Bahan Baku Diterima
+                            <?php } else if ($row['status'] == 2) { ?>
+                                Finish
                             <?php } ?>
                         </td>
                         <td>
@@ -76,7 +94,15 @@ $bahanbaku = $lihat->bahanbaku();
                                 -
                             <?php endif; ?>
                         </td>
-
+                        <td>
+                            Rp <?= number_format($row['harga'], 0, ',', '.') ?>
+                        </td>
+                        <td>
+                            <?= $row['qty_terima']; ?>
+                        </td>
+                        <td>
+                            <?= $row['catatan_terima']; ?>
+                        </td>
                         <td>
                             <?php if ($row['status'] == 0) { ?>
                                 <button
@@ -108,7 +134,7 @@ $bahanbaku = $lihat->bahanbaku();
                                     data-recid="<?= $row['recid']; ?>">Edit</button> -->
 
 
-                                <?php if (!empty($row['no_invoice']) && empty($row['bukti_bayar'])) { ?>
+                                <?php if (!empty($row['no_invoice']) && empty($row['bukti_file'])) { ?>
                                     <button
                                         class="btn btn-info btn-xs btn-bukti-bayar"
                                         data-id="<?= $row['recid']; ?>">
@@ -116,11 +142,19 @@ $bahanbaku = $lihat->bahanbaku();
                                     </button>
 
                                 <?php } ?>
-                                <button
-                                    class="btn btn-warning btn-xs btn-edit"
-                                    data-toggle="modal" data-target="#myModal"
-                                    data-id="<?= $row['recid']; ?>"
-                                    data-aktif="<?= $row['last_number']; ?>">Sudah Di Terima</button>
+
+                                <?php if (!empty($row['bukti_file'])) { ?>
+                                    <button
+                                        class="btn btn-success btn-xs btn-terima"
+                                        data-toggle="modal"
+                                        data-target="#modalTerima"
+                                        data-id="<?= $row['recid']; ?>"
+                                        data-qty="<?= $row['qty']; ?>"
+                                        data-bahanbakuid="<?= $row['bahanbaku_id']; ?>">
+                                        Sudah Diterima
+                                    </button>
+                                <?php } ?>
+
                             <?php } ?>
 
 
@@ -219,7 +253,7 @@ $bahanbaku = $lihat->bahanbaku();
                     <div class="form-group">
                         <label>Harga (Total)</label>
                         <input type="text" class="form-control" id="input-harga-format" required>
-                        <input type="text" name="harga" id="input-harga"> <!-- ini yang dikirim ke PHP -->
+                        <input type="hidden" name="harga" id="input-harga"> <!-- ini yang dikirim ke PHP -->
 
 
                     </div>
@@ -261,6 +295,35 @@ $bahanbaku = $lihat->bahanbaku();
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-success">Submit</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<div id="modalTerima" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <form action="fungsi/edit/edit.php?transaksi_bahanbaku=terima_barang" method="POST">
+            <div class="modal-content" style="border-radius:0px;">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title"><i class="fa fa-file-invoice"></i> Konfirmasi Penerimaan Barang</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="id" id="terima-recid">
+                    <div class="form-group">
+                        <label for="qty_aktual">Qty Diterima</label>
+                        <input type="number" name="qty_aktual" class="form-control" step="0.01" required>
+                        <input type="hidden" name="qty" id="qty_po">
+                        <input type="hidden" name="bahanbakuid" id="bahanbakuid">
+                    </div>
+                    <div class="form-group">
+                        <label for="catatan">Catatan Penerimaan</label>
+                        <textarea name="catatan" class="form-control"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Simpan</button>
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
                 </div>
             </div>
@@ -368,6 +431,16 @@ $bahanbaku = $lihat->bahanbaku();
             $('#bukti-recid').val(recid);
             $('#modalBuktiBayar').modal('show');
         });
+
+        $('.btn-terima').click(function() {
+            const recid = $(this).data('id');
+            const qty_po = $(this).data('qty');
+            const bahanbakuid = $(this).data('bahanbakuid');
+            $('#terima-recid').val(recid);
+            $('#qty_po').val(qty_po);
+            $('#bahanbakuid').val(bahanbakuid);
+        });
+
 
     });
 </script>
