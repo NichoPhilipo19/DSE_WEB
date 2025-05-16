@@ -135,7 +135,6 @@ if (!empty($_SESSION['admin'])) {
         echo '<script>window.location="../../index.php?page=number_sequence&success=tambah";</script>';
     }
     
-
     if (!empty($_GET['user'])) {
         $username = htmlentities($_POST['username']);
         $nama     = htmlentities($_POST['nama']);
@@ -154,6 +153,46 @@ if (!empty($_SESSION['admin'])) {
     
         echo '<script>window.location="../../index.php?page=user&success=tambah";</script>';
     }
+
+    if (!empty($_GET['transaksi_bahan_baku'])) {
+        echo "<pre>";
+    
+        // Cek apakah POST data terkirim
+        print_r($_POST);
+    
+        // Ambil dan sanitasi input
+        if (isset($_POST['bahanbaku_id'], $_POST['qty'], $_POST['uom'])) {
+            $bahanbaku_id = htmlentities($_POST['bahanbaku_id']);
+            $qty          = floatval($_POST['qty']);
+            $uom          = htmlentities($_POST['uom']);
+    
+            echo "Sanitized Input:\n";
+            var_dump($bahanbaku_id, $qty, $uom);
+    
+            // Siapkan data
+            $data = [$bahanbaku_id, $qty, $uom];
+    
+            // Query insert
+            $sql = "INSERT INTO tbl_transaksi_bahanbaku (tgl, bahanbaku_id, qty, uom, status)
+                    VALUES (CURDATE(), ?, ?, ?, 0)";
+    
+            try {
+                $row = $config->prepare($sql);
+                $row->execute($data);
+                echo '<script>window.location="../../index.php?page=transaksi_bahan_baku&success=tambah";</script>';
+            } catch (PDOException $e) {
+                echo "SQL Error:\n";
+                echo $e->getMessage();
+            }
+        } else {
+            echo "Input data belum lengkap.\n";
+        }
+    
+        echo "</pre>";
+        exit; // Hentikan agar tidak redirect saat debugging
+    }
+    
+    
     
 
 

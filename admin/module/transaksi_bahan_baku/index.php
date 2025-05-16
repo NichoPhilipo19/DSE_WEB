@@ -1,6 +1,7 @@
 <?php
 // contoh ambil data dari database
 $transaksi = $lihat->transaksi_bahanbaku_list();
+$bahanbaku = $lihat->bahanbaku();
 ?>
 <h4 class="mb-4">Transaksi Bahan Baku</h4>
 <?php if (isset($_GET['success'])) { ?>
@@ -20,10 +21,11 @@ $transaksi = $lihat->transaksi_bahanbaku_list();
             <thead class="thead-dark">
                 <tr>
                     <th>Tanggal</th>
+                    <th>No.PO</th>
                     <th>Nama Bahan Baku</th>
-                    <th>Jenis</th>
                     <th>Qty</th>
                     <th>UOM</th>
+                    <th>Status</th>
                     <th>Keterangan</th>
                     <th>Aksi</th>
                 </tr>
@@ -32,42 +34,56 @@ $transaksi = $lihat->transaksi_bahanbaku_list();
                 <?php foreach ($transaksi as $row): ?>
                     <tr>
                         <td><?= date('d-m-Y', strtotime($row['tanggal'])) ?></td>
+                        <td><?= $row['no_po'] ?></td>
                         <td><?= $row['nama_bb'] ?></td>
-                        <td>
-                            <span class="badge badge-<?= $row['jenis'] == 'masuk' ? 'success' : 'danger' ?>">
-                                <?= ucfirst($row['jenis']) ?>
-                            </span>
-                        </td>
                         <td><?= $row['qty'] ?></td>
-                        <td><?= $row['nama_uom'] ?></td>
+                        <td><?= $row['uom'] ?></td>
+                        <td>
+                            <?php if ($row['status'] == 0) { ?>
+                                Draft
+                            <?php } else if ($row['status'] == 1) { ?>
+                                In Order
+                            <?php } else if ($row['status'] == 3) { ?>
+                                Bahan Baku Diterima
+                            <?php } ?>
+                        </td>
                         <td><?= $row['keterangan'] ?></td>
                         <td>
-                            <button
-                                class="btn btn-warning btn-xs btn-edit"
-                                data-toggle="modal" data-target="#myModal"
-                                data-id="<?= $row['recid']; ?>"
-                                data-aktif="<?= $row['last_number']; ?>"
-                                >Edit</button>
-                            <button
-                                class="btn btn-warning btn-xs btn-edit"
-                                data-toggle="modal" data-target="#myModal"
-                                data-id="<?= $row['recid']; ?>"
-                                data-aktif="<?= $row['last_number']; ?>"
-                                >Add Invoice</button>
-                            <button
-                                class="btn btn-warning btn-xs btn-edit"
-                                data-toggle="modal" data-target="#myModal"
-                                data-id="<?= $row['recid']; ?>"
-                                data-aktif="<?= $row['last_number']; ?>">Bukti Bayar</button>
-                            <a href="fungsi/hapus/hapus.php?number_sequence=hapus&id=<?= $row['recid']; ?>"
-                                onclick="return confirm('Hapus Data ?');">
-                                <button class="btn btn-danger btn-xs">Hapus</button>
+                            <?php if ($row['status'] == 0) { ?>
                                 <button
-                                class="btn btn-warning btn-xs btn-edit"
-                                data-toggle="modal" data-target="#myModal"
-                                data-id="<?= $row['recid']; ?>"
-                                data-aktif="<?= $row['last_number']; ?>">Sudah Di Terima</button>
-                            </a>
+                                    class="btn btn-warning btn-xs btn-edit"
+                                    data-toggle="modal" data-target="#modalTambah"
+                                    data-id="<?= $row['recid']; ?>"
+                                    data-aktif="<?= $row['last_number']; ?>">Edit</button>
+                                <button
+                                    class="btn btn-warning btn-xs btn-edit"
+                                    data-toggle="modal" data-target="#myModal"
+                                    data-id="<?= $row['recid']; ?>"
+                                    data-aktif="<?= $row['last_number']; ?>">Order</button>
+                                <a href="fungsi/hapus/hapus.php?number_sequence=hapus&id=<?= $row['recid']; ?>"
+                                    onclick="return confirm('Hapus Data ?');">
+                                    <button class="btn btn-danger btn-xs">Hapus</button>
+                                <?php } ?>
+                                <?php if ($row['status'] == 1) { ?>
+                                    <button
+                                        class="btn btn-warning btn-xs btn-edit"
+                                        data-toggle="modal" data-target="#myModal"
+                                        data-id="<?= $row['recid']; ?>"
+                                        data-aktif="<?= $row['last_number']; ?>">Add Invoice</button>
+                                    <button
+                                        class="btn btn-warning btn-xs btn-edit"
+                                        data-toggle="modal" data-target="#myModal"
+                                        data-id="<?= $row['recid']; ?>"
+                                        data-aktif="<?= $row['last_number']; ?>">Bukti Bayar</button>
+                                    <button
+                                        class="btn btn-warning btn-xs btn-edit"
+                                        data-toggle="modal" data-target="#myModal"
+                                        data-id="<?= $row['recid']; ?>"
+                                        data-aktif="<?= $row['last_number']; ?>">Sudah Di Terima</button>
+                                <?php } ?>
+
+
+                                </a>
                         </td>
                     </tr>
                 <?php endforeach ?>
@@ -83,42 +99,33 @@ $transaksi = $lihat->transaksi_bahanbaku_list();
                 <h5 class="modal-title" id="modal-title"><i class="fa fa-plus"></i> Form PO Bahan Baku</h5>
                 <button type="button" class="close" data-dismiss="modal">&times;</button>
             </div>
-            <form id="form-inventaris" action="fungsi/tambah/tambah.php?inventaris=tambah" method="POST">
+            <form action="fungsi/tambah/tambah.php?transaksi_bahan_baku=tambah" method="POST">
                 <div class="modal-body">
-                    <input type="text" name="recid" id="recid_bahan_baku">
-                    <input type="hidden" id="db-jml" value="0">
-
-                    <table class="table table-striped bordered">
+                    <table class="table table-striped bordered" id="draft-table-form">
                         <tr>
-                            <td>Nama Barang</td>
-                            <td><input type="text" required class="form-control" name="nama" id="input-nama"></td>
-                        </tr>
-                        <tr>
-                            <td>Deskripsi</td>
-                            <td><input type="text" required class="form-control" name="desc" id="input-desc"></td>
-                        </tr>
-                        <tr id="row-opsi" style="display:none;">
-                            <td colspan="2">
-                                <label><input type="checkbox" id="check-edit-aktif-rusak" name="check-edit-aktif-rusak"> Edit jumlah aktif & rusak</label><br>
-                                <label><input type="checkbox" id="check-edit-total" name="check-edit-total"> Edit jumlah total langsung</label>
-
+                            <td>Bahan Baku</td>
+                            <td>
+                                <select class="form-control" id="select-bahanbaku">
+                                    <option value="">-- Pilih Bahan Baku --</option>
+                                    <?php foreach ($bahanbaku as $bb): ?>
+                                        <option value="<?= $bb['recid'] ?>" data-uom="<?= $bb['satuan'] ?>">
+                                            <?= $bb['nama_bb'] ?>
+                                        </option>
+                                    <?php endforeach ?>
+                                </select>
+                                <input type="hidden" name="bahanbaku_id" id="bahanbaku_id">
                             </td>
                         </tr>
                         <tr>
-                            <td>Jumlah Total</td>
-                            <td><input type="number" required class="form-control" name="jml" id="input-jml"></td>
-                            <input type="hidden" name="jml" id="hidden-jml">
-
+                            <td>Qty</td>
+                            <td><input type="number" class="form-control" name="qty" id="input-qty"></td>
                         </tr>
-                        <tr id="row-rusak" style="display:none;">
-                            <td>Jumlah Rusak</td>
-                            <td><input type="number" class="form-control" name="jml_rusak" id="input-rusak"></td>
-                        </tr>
-                        <tr id="row-aktif" style="display:none;">
-                            <td>Jumlah Aktif</td>
-                            <td><input type="number" class="form-control" name="jml_aktif" id="input-aktif"></td>
+                        <tr>
+                            <td>UOM</td>
+                            <td><input type="text" readonly class="form-control"name="uom" id="input-uom"></td>
                         </tr>
                     </table>
+
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary" id="btn-submit"><i class="fa fa-plus"></i> Insert Data</button>
@@ -136,5 +143,14 @@ $transaksi = $lihat->transaksi_bahanbaku_list();
             $('#modalTambah').modal('show');
             $('#recid_bahan_baku').val(urlParams.get('recid'))
         }
+
+        $('#select-bahanbaku').change(function() {
+            const uom = $('#select-bahanbaku option:selected').data('uom');
+            const val = $('#select-bahanbaku option:selected').val();
+            $('#input-uom').val(uom || '');
+            $('#bahanbaku_id').val(val || '');
+        });
+
+        
     });
 </script>
