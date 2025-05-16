@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 25, 2025 at 01:27 PM
+-- Generation Time: May 16, 2025 at 06:18 AM
 -- Server version: 10.4.11-MariaDB
 -- PHP Version: 7.3.15
 
@@ -21,6 +21,28 @@ SET time_zone = "+00:00";
 --
 -- Database: `db_dse`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `number_sequences`
+--
+
+CREATE TABLE `number_sequences` (
+  `recid` int(11) NOT NULL,
+  `prefix` varchar(11) NOT NULL,
+  `kode_perusahaan` varchar(20) NOT NULL,
+  `bulan` int(11) NOT NULL,
+  `tahun` int(11) NOT NULL,
+  `last_number` varchar(15) NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `number_sequences`
+--
+
+INSERT INTO `number_sequences` (`recid`, `prefix`, `kode_perusahaan`, `bulan`, `tahun`, `last_number`) VALUES
+(1, 'PO', 'DSE', 1, 2025, '0000');
 
 -- --------------------------------------------------------
 
@@ -198,12 +220,23 @@ CREATE TABLE `tbl_transaksi_bahanbaku` (
   `pengiriman` varchar(100) DEFAULT NULL,
   `status` tinyint(1) DEFAULT NULL,
   `qty` int(11) DEFAULT NULL,
+  `uom` varchar(20) NOT NULL,
   `bahanbaku_id` int(11) DEFAULT NULL,
   `supp_id` int(11) DEFAULT NULL,
   `pembayaran` varchar(50) DEFAULT NULL,
   `status_bayar` tinyint(1) DEFAULT NULL,
-  `tgl_jatuhtempo` date DEFAULT NULL
+  `tgl_jatuhtempo` date DEFAULT NULL,
+  `sudah_diterima` tinyint(4) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `tbl_transaksi_bahanbaku`
+--
+
+INSERT INTO `tbl_transaksi_bahanbaku` (`recid`, `tgl`, `no_po`, `no_invoice`, `buktibayar`, `harga`, `pengiriman`, `status`, `qty`, `uom`, `bahanbaku_id`, `supp_id`, `pembayaran`, `status_bayar`, `tgl_jatuhtempo`, `sudah_diterima`) VALUES
+(1, '2025-05-07', '202020', '20202', 'tes', '20000.00', 'tes', 0, 100, '', 2, 1, 'tf', 1, '2025-05-07', 0),
+(11, '2025-05-10', NULL, NULL, NULL, NULL, NULL, 0, 500, 'Kg', 9, NULL, NULL, NULL, NULL, 0),
+(12, '2025-05-10', NULL, NULL, NULL, NULL, NULL, 0, 500, 'Kg', 9, NULL, NULL, NULL, NULL, 0);
 
 -- --------------------------------------------------------
 
@@ -252,6 +285,7 @@ CREATE TABLE `transaksi_keluar` (
   `tgl_jatuh_tempo` date DEFAULT NULL,
   `status_pembayaran` tinyint(1) DEFAULT NULL,
   `sisa_pembayaran` decimal(15,2) DEFAULT NULL,
+  `sudah_diterima` tinyint(4) NOT NULL,
   `pakai_inventaris` tinyint(1) DEFAULT NULL,
   `inven_id` int(11) DEFAULT NULL,
   `jml_inven` int(11) DEFAULT NULL,
@@ -286,6 +320,13 @@ INSERT INTO `uom` (`recid`, `kode_uom`, `nama_uom`, `batas_aman`) VALUES
 --
 -- Indexes for dumped tables
 --
+
+--
+-- Indexes for table `number_sequences`
+--
+ALTER TABLE `number_sequences`
+  ADD PRIMARY KEY (`recid`),
+  ADD UNIQUE KEY `unique_sequence` (`prefix`,`kode_perusahaan`,`bulan`,`tahun`);
 
 --
 -- Indexes for table `tbl_bahan_baku`
@@ -372,6 +413,12 @@ ALTER TABLE `uom`
 --
 
 --
+-- AUTO_INCREMENT for table `number_sequences`
+--
+ALTER TABLE `number_sequences`
+  MODIFY `recid` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
 -- AUTO_INCREMENT for table `tbl_bahan_baku`
 --
 ALTER TABLE `tbl_bahan_baku`
@@ -417,7 +464,7 @@ ALTER TABLE `tbl_tmpt_produksi`
 -- AUTO_INCREMENT for table `tbl_transaksi_bahanbaku`
 --
 ALTER TABLE `tbl_transaksi_bahanbaku`
-  MODIFY `recid` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `recid` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `tbl_user`
