@@ -199,6 +199,118 @@ if (!empty($_SESSION['admin'])) {
         echo '<script>window.location="../../index.php?page=number_sequence&success=edit";</script>';
     }
 
+    if (!empty($_GET['transaksi_bahanbaku'])) {
+        $recid          = $_POST['edit_revid'];
+        $bahanbaku_id   = htmlentities($_POST['bahanbaku_id']);
+        $supp_id        = htmlentities($_POST['supp_id']);
+        $qty            = floatval($_POST['qty']);
+        $uom            = htmlentities($_POST['uom']);
+
+        $data[] = $bahanbaku_id;
+        $data[] = $qty;
+        $data[] = $uom;
+        $data[] = $supp_id;
+        $data[] = $recid;
+        // print_r($data);
+        $sql = "UPDATE tbl_transaksi_bahanbaku SET bahanbaku_id = ?, qty = ?, uom = ?,supp_id=? WHERE recid = ? AND status = 0";
+
+        $stmt = $config->prepare($sql);
+        $stmt->execute($data);
+
+        echo '<script>window.location="../../index.php?page=transaksi_bahan_baku&success=edit";</script>';
+    }
+
+    if (!empty($_GET['order_transaksi_bahanbaku'])) {
+        $recid = $_POST['recid_order'];
+        // $bulan = date("m");
+        // $tahun = date("Y");
+        $bulan = 1;
+        $tahun = 2025;
+        $prefix = "PO"; // atau bisa ambil dari config
+
+        try {
+            $sql_seq = "SELECT * FROM number_sequences WHERE prefix = ? AND bulan = ? AND tahun = ? LIMIT 1";
+            $stmt_seq = $config->prepare($sql_seq);
+            $stmt_seq->execute([$prefix, $bulan, $tahun]);
+            $seq = $stmt_seq->fetch();
+
+            if ($seq) {
+                $kode_perusahaan = $seq['kode_perusahaan'];
+                $last_number = intval($seq['last_number']) + 1;
+                $no_po = str_pad($last_number, 4, '0', STR_PAD_LEFT) . '/' . $prefix . '/' . $kode_perusahaan . '/' . $bulan . '/' . $tahun;
+
+                $sql = "UPDATE tbl_transaksi_bahanbaku SET status = 1, no_po = '$no_po' WHERE recid = ?";
+                $stmt = $config->prepare($sql);
+                $stmt->execute([$recid]);
+
+                $sql_update_seq = "UPDATE number_sequences SET last_number = ? WHERE prefix = 'PO' ";
+                $stmt_upd_seq = $config->prepare($sql_update_seq);
+                $stmt_upd_seq->execute([$last_number]);
+
+                echo '<script>window.location="../../index.php?page=transaksi_bahan_baku&success=order";</script>';
+            } else {
+                echo "Nomor urut tidak ditemukan untuk prefix $prefix/$kode_perusahaan/$bulan/$tahun.";
+            }
+        } catch (PDOException $e) {
+            echo "Error: " . $e->getMessage();
+        }
+    }
+
+    if (isset($_GET['transaksi_bahanbaku']) && $_GET['transaksi_bahanbaku'] == 'add_invoice') {
+        $recid = htmlentities($_POST['recid']);
+        $no_invoice = htmlentities($_POST['no_invoice']);
+        $harga = intval($_POST['harga']);
+
+
+        try {
+            $sql = "UPDATE tbl_transaksi_bahanbaku
+                    SET no_invoice = ?, harga = ?
+                    WHERE recid = ?";
+            $stmt = $config->prepare($sql);
+            $stmt->execute([$no_invoice, $harga, $recid]);
+
+            echo '<script>window.location="../../index.php?page=transaksi_bahan_baku&success=invoice";</script>';
+        } catch (PDOException $e) {
+            echo "Error: " . $e->getMessage();
+        }
+    }
+
+    if (isset($_GET['bukti_bayar']) && $_GET['bukti_bayar'] === 'submit') {
+        print_r($_POST);
+        $recid        = $_POST['recid'];
+        $tgl_bayar    = $_POST['tgl_bayar'];
+        $jumlah_bayar = preg_replace('/[^\d]/', '', $_POST['jumlah_bayar']); // hilangkan format titik/koma
+
+
+        $upload_dir = '../../assets/bukti_bayar/';
+        $filename   = basename($_FILES['bukti_file']['name']);
+        $target     = $upload_dir . $filename;
+        $filetype   = strtolower(pathinfo($target, PATHINFO_EXTENSION));
+
+        // Validasi file
+        $allowed = ['jpg', 'jpeg', 'png', 'pdf'];
+        if (!in_array($filetype, $allowed)) {
+            echo "<script>alert('Format file tidak didukung.'); window.history.back();</script>";
+            exit;
+        }
+
+        if (move_uploaded_file($_FILES['bukti_file']['tmp_name'], $target)) {
+            try {
+                $sql = "UPDATE tbl_transaksi_bahanbaku 
+                        SET tgl_byr = ?, jumlah_bayar = ?, bukti_file = ?, 
+                        WHERE recid = ?";
+                $stmt = $config->prepare($sql);
+                $stmt->execute([$tgl_bayar, $jumlah_bayar, $filename, $recid]);
+
+                header("Location: ../../index.php?page=transaksi_bahan_baku&success=bukti");
+                exit;
+            } catch (PDOException $e) {
+                echo "Error: " . $e->getMessage();
+            }
+        } else {
+            echo "<script>alert('Upload gagal.'); window.history.back();</script>";
+        }
+    }
 
 
 

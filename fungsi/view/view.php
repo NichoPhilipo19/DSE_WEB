@@ -27,6 +27,7 @@ class view
             bb.`desc`,
             bb.stok,
             bb.satuan,
+            bb.supp_id,
             u.kode_uom,
             u.nama_uom,
             u.batas_aman,

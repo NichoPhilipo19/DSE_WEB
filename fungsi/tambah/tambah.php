@@ -104,13 +104,13 @@ if (!empty($_SESSION['admin'])) {
     if (!empty($_GET['tempat_produksi'])) {
         $nama   = htmlentities($_POST['nama']);
         $alamat = htmlentities($_POST['alamat']);
-    
+
         $data = [$nama, $alamat];
-    
+
         $sql = "INSERT INTO tbl_tmpt_produksi (nama, alamat) VALUES (?, ?)";
         $row = $config->prepare($sql);
         $row->execute($data);
-    
+
         echo '<script>window.location="../../index.php?page=tempat_produksi&success=tambah";</script>';
     }
     if (!empty($_GET['number_sequence'])) {
@@ -120,21 +120,21 @@ if (!empty($_SESSION['admin'])) {
         $bulan      = intval($_POST['bulan']);
         $tahun      = intval($_POST['tahun']);
         $last_number  = $_POST['numbering'];
-    
+
         // Data yang akan disisipkan ke dalam tabel
         $data = [$prefix, $kode_perusahaan, $bulan, $tahun, $last_number];
-    
+
         // Query insert
         $sql = "INSERT INTO number_sequences (prefix, kode_perusahaan, bulan, tahun, last_number)
                 VALUES (?, ?, ?, ?, ?)";
-    
+
         $row = $config->prepare($sql);
         $row->execute($data);
-    
+
         // Redirect dengan pesan sukses
         echo '<script>window.location="../../index.php?page=number_sequence&success=tambah";</script>';
     }
-    
+
     if (!empty($_GET['user'])) {
         $username = htmlentities($_POST['username']);
         $nama     = htmlentities($_POST['nama']);
@@ -142,58 +142,64 @@ if (!empty($_SESSION['admin'])) {
         $status   = intval($_POST['status']);
         $level    = htmlentities($_POST['level']);
         $alamat   = htmlentities($_POST['alamat']);
-        $password = htmlentities($_POST['password']); 
+        $password = htmlentities($_POST['password']);
         // $password = password_hash('123456', PASSWORD_DEFAULT); // default password
-    
+
         $data = [$username, $nama, $email, $password, $status, $level, $alamat];
-    
+
         $sql = "INSERT INTO tbl_user (username, nama, email, password, status, level, alamat) VALUES (?, ?, ?, ?, ?, ?, ?)";
         $row = $config->prepare($sql);
         $row->execute($data);
-    
+
         echo '<script>window.location="../../index.php?page=user&success=tambah";</script>';
     }
 
     if (!empty($_GET['transaksi_bahan_baku'])) {
         echo "<pre>";
-    
-        // Cek apakah POST data terkirim
-        print_r($_POST);
-    
+
+
         // Ambil dan sanitasi input
         if (isset($_POST['bahanbaku_id'], $_POST['qty'], $_POST['uom'])) {
-            $bahanbaku_id = htmlentities($_POST['bahanbaku_id']);
-            $qty          = floatval($_POST['qty']);
-            $uom          = htmlentities($_POST['uom']);
-    
+            $date           = date("Y/m/d");
+            $bahanbaku_id   = htmlentities($_POST['bahanbaku_id']);
+            $supp_id        = htmlentities($_POST['supp_id']);
+            $qty            = floatval($_POST['qty']);
+            $uom            = htmlentities($_POST['uom']);
+            $username       = htmlentities($_SESSION['admin']["username"]);
+
             echo "Sanitized Input:\n";
-            var_dump($bahanbaku_id, $qty, $uom);
-    
+            var_dump($date, $bahanbaku_id, $qty, $uom);
+
             // Siapkan data
-            $data = [$bahanbaku_id, $qty, $uom];
-    
+            $data = [$date, $bahanbaku_id, $qty, $uom, $username, $username];
+
             // Query insert
-            $sql = "INSERT INTO tbl_transaksi_bahanbaku (tgl, bahanbaku_id, qty, uom, status)
-                    VALUES (CURDATE(), ?, ?, ?, 0)";
-    
+            $sql = "INSERT INTO tbl_transaksi_bahanbaku (tgl, bahanbaku_id,supp_id, qty, uom, status, createdby, modifiedby) 
+                    VALUES ('$date', $bahanbaku_id, $supp_id, $qty, '$uom', 0,'$username','$username')";
+            // VALUES (?, ?, ?, ?, 0,?,?)";
+
+
             try {
                 $row = $config->prepare($sql);
                 $row->execute($data);
+                // print_r($sql);
                 echo '<script>window.location="../../index.php?page=transaksi_bahan_baku&success=tambah";</script>';
             } catch (PDOException $e) {
                 echo "SQL Error:\n";
                 echo $e->getMessage();
+                echo "Query: $sql\n";
+                print_r($data);
             }
         } else {
             echo "Input data belum lengkap.\n";
         }
-    
+
         echo "</pre>";
         exit; // Hentikan agar tidak redirect saat debugging
     }
-    
-    
-    
+
+
+
 
 
     if (!empty($_GET['kategori'])) {

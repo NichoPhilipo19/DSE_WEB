@@ -38,7 +38,7 @@
                 $hasil = $lihat->numberSequence();
                 $no = 1;
                 foreach ($hasil as $isi) {
-                    $nomor_dokumen = $isi['last_number']."/".$isi['prefix']."/".$isi['kode_perusahaan']."-".$isi['bulan']."/".$isi['tahun'];
+                    $nomor_dokumen = str_pad($isi['last_number'], 4, '0', STR_PAD_LEFT) . "/" . $isi['prefix'] . "/" . $isi['kode_perusahaan'] . "-" . $isi['bulan'] . "/" . $isi['tahun'];
                 ?>
                     <tr>
                         <td><?= $no; ?></td>
