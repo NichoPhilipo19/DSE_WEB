@@ -9,12 +9,17 @@ $hasil = $lihat->clientList_edit($id);
 		<p>Tambah Inventaris di Client Berhasil !</p>
 	</div>
 <?php } ?>
-<?php if (isset($_GET['success'])) { ?>
+<?php if (isset($_GET['success']) && $_GET['success'] == "tambah") { ?>
 	<div class="alert alert-success">
 		<p>Tambah Inventaris di Client Berhasil !</p>
 	</div>
 <?php } ?>
-<?php if (isset($_GET['remove'])) { ?>
+<?php if (isset($_GET['success']) && $_GET['success'] == "edit") { ?>
+	<div class="alert alert-success">
+		<p>Edit Inventaris di Client Berhasil !</p>
+	</div>
+<?php } ?>
+<?php if (isset($_GET['success']) && $_GET['success'] == "hapus") { ?>
 	<div class="alert alert-danger">
 		<p>Hapus Inventaris di Client Berhasil !</p>
 	</div>
@@ -58,12 +63,12 @@ $hasil = $lihat->clientList_edit($id);
 </div>
 <br />
 <hr />
-<button type="button" class="btn btn-primary btn-md mr-2" data-toggle="modal" data-target="#myModal">
+<button type="button" class="btn btn-primary btn-md mr-2 btn-insert" data-toggle="modal" data-target="#myModal">
 	<i class="fa fa-plus"></i> Insert Data</button>
 <a href="index.php?page=client/details&client=<?php echo $id; ?>" class="btn btn-success btn-md">
 	<i class="fa fa-refresh"></i> Refresh Data </a>
 <div class="clearfix"></div>
-<br/>
+<br />
 <div class="card card-body">
 	<div class="table-responsive">
 		<table class="table table-bordered table-striped table-sm" id="example1">
@@ -90,16 +95,25 @@ $hasil = $lihat->clientList_edit($id);
 						<td><?php echo $isi['jml_active']; ?></td>
 						<td><?php echo $isi['jml_nonactive']; ?></td>
 						<td><?php echo $isi['jml_total']; ?></td>
-						<!-- <td>
-                                   <a href="index.php?page=client/details&client=<?php echo $isi['recid']; ?>"><button
-                                           class="btn btn-primary btn-xs">Details</button></a>
+						<td>
+							<!-- Tombol Edit -->
 
-                                   <a href="index.php?page=client/edit&client=<?php echo $isi['recid']; ?>"><button
-                                           class="btn btn-warning btn-xs">Edit</button></a>
-                                   <a href="fungsi/hapus/hapus.php?client=hapus&id=<?php echo $isi['recid']; ?>"
-                                       onclick="javascript:return confirm('Hapus Data barang ?');"><button
-                                           class="btn btn-danger btn-xs">Hapus</button></a>
-                               </td> -->
+							<button class="btn btn-warning btn-xs btn-edit"
+								data-toggle="modal" data-target="#myModal"
+								data-id="<?= $isi['recid']; ?>"
+								data-invenid="<?= $isi['inven_id']; ?>"
+								data-jmlactive="<?= $isi['jml_active']; ?>"
+								data-jmlnonactive="<?= $isi['jml_nonactive']; ?>"
+								data-jmltotal="<?= $isi['jml_total']; ?>">
+								Edit
+							</button>
+
+							<!-- Tombol Hapus -->
+							<a href="fungsi/hapus/hapus.php?aksi=hapus_inventaris_client&id=<?php echo $isi['recid']; ?>&clientt=<?php echo $id; ?>" onclick="return confirm('Yakin ingin hapus inventaris ini?')">
+								<button class="btn btn-danger btn-xs">Hapus</button>
+							</a>
+						</td>
+
 					</tr>
 				<?php
 					$no++;
@@ -109,3 +123,78 @@ $hasil = $lihat->clientList_edit($id);
 		</table>
 	</div>
 </div>
+
+<!-- Modal Tambah/Edit Inventaris -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<form id="form-relasi" method="post">
+				<div class="modal-header">
+					<h5 class="modal-title" id="modal-title">Tambah Inventaris ke Client</h5>
+					<button type="button" class="close" data-dismiss="modal">&times;</button>
+				</div>
+				<div class="modal-body">
+					<input type="hidden" name="client_id" id="client_id" value="<?= $id ?>" />
+					<input type="hidden" name="recid" id="recid" /> <!-- ini perlu untuk edit -->
+
+					<div class="form-group">
+						<label>Inventaris</label>
+						<select name="inven_id" id="inven_id" class="form-control" required>
+							<option value="">-- Pilih Inventaris --</option>
+							<?php
+							$dataInven = $lihat->invenList();
+							foreach ($dataInven as $inv) {
+								echo "<option value='{$inv['recid']}'>{$inv['nama_inven']}</option>";
+							}
+							?>
+						</select>
+					</div>
+					<div class="form-group">
+						<label>Jumlah Total</label>
+						<input type="number" name="jml_total" id="jml_total" class="form-control" required>
+					</div>
+					<div class="form-group">
+						<label>Jumlah Aktif</label>
+						<input type="number" name="jml_active" id="jml_active" class="form-control" required>
+					</div>
+					<div class="form-group">
+						<label>Jumlah Nonaktif</label>
+						<input type="number" name="jml_nonactive" id="jml_nonactive" class="form-control" required>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="submit" id="btn-submit" class="btn btn-primary">Simpan</button>
+					<button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+
+
+<script>
+	$(document).ready(function() {
+		$('.btn-edit').on('click', function() {
+			$('#modal-title').text('Edit Inventaris');
+			$('#form-relasi').attr('action', 'fungsi/edit/edit.php?aksi=edit_inventaris_client');
+			$('#btn-submit').text('Update');
+
+			// Ambil data dari data-atribut tombol edit
+			$('#recid').val($(this).data('id'));
+			$('#client_id').val(<?= $id ?>); // langsung dari PHP
+			$('#inven_id').val($(this).data('invenid'));
+			$('#jml_total').val($(this).data('jmltotal'));
+			$('#jml_active').val($(this).data('jmlactive'));
+			$('#jml_nonactive').val($(this).data('jmlnonactive'));
+		});
+
+		// Reset saat tambah
+		$('.btn-insert').on('click', function() {
+			$('#modal-title').text('Tambah Inventaris');
+			$('#form-relasi').attr('action', 'fungsi/tambah/tambah.php?aksi=tambah_inventaris_client');
+			$('#btn-submit').text('Simpan');
+			$('#form-relasi')[0].reset();
+			$('#recid').val('');
+		});
+	});
+</script>

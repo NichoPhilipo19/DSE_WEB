@@ -79,7 +79,31 @@ if (!empty($_SESSION['admin'])) {
     
         echo '<script>window.location="../../index.php?page=number_sequence&remove=hapus";</script>';
     }
-    
+
+    if (!empty($_GET['formulasi']) && $_GET['formulasi'] == 'hapus') {
+        echo "<pre>";
+        // print_r($_GET);
+        // Ambil dan sanitasi input
+        $recid = intval($_GET['id']);
+        $produk_id = intval($_GET['productt']);
+
+        // Query hapus
+        $sql = "DELETE FROM tbl_formulasi WHERE recid = ?";
+        $stmt = $config->prepare($sql);
+        $stmt->execute([$recid]);
+
+        // Redirect ke halaman detail produk setelah hapus
+        echo '<script>window.location="../../index.php?page=product/details&product=' . $produk_id . '&success=hapus";</script>';
+    }
+    if ($_GET['aksi'] == 'hapus_inventaris_client') {
+        $id = $_GET['id'];
+        $client = $_GET['clientt'];
+        $sql = "DELETE FROM tbl_relasi_inven WHERE recid = ?";
+        $query = $config->prepare($sql);
+        $query->execute([$id]);
+        header("location:../../index.php?page=client/details&client=$client&success=hapus");
+    }
+
 
 
 

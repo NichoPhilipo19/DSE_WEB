@@ -150,6 +150,44 @@ class view
         $hasil = $row -> fetchAll();
         return $hasil;
     }
+    public function numberSequenceForTransaksi()
+    {
+        // echo "<pre>";
+        $prefix = "INV";
+        $bulan = 1;
+        $tahun = 2025;
+        // $bulan = date("m");
+        // $tahun = date("Y");
+
+        // $sql_seq = "SELECT * FROM number_sequences WHERE prefix = ? AND bulan = ? AND tahun = ? LIMIT 1";
+        // $stmt_seq = $this->db->prepare($sql_seq);
+        // $stmt_seq->execute([$prefix, $bulan, $tahun]);
+        // $seq = $stmt_seq->fetch();
+
+
+        // return $no_inv;
+
+        $sql = "SELECT * FROM number_sequences WHERE prefix = ? AND bulan = ? AND tahun = ? LIMIT 1";
+        $stmt = $this->db->prepare($sql);
+
+        if ($stmt->execute([$prefix, $bulan, $tahun])) {
+            $hasil = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($hasil) {
+                $kode_perusahaan = $hasil['kode_perusahaan'] ?? '';
+                $last_number = intval($hasil['last_number']) + 1;
+                $no_inv = str_pad($last_number, 4, '0', STR_PAD_LEFT) . '/' . $prefix . '/' . $kode_perusahaan . '/' . $bulan . '/' . $tahun;
+
+                return $no_inv;
+            } else {
+                // Tidak ada data ditemukan
+                echo "Data number_sequences tidak ditemukan.";
+            }
+        } else {
+            // Query gagal
+            echo "Query gagal dijalankan.";
+        }
+    }
     public function transaksi_bahanbaku_list()
     {
         // $sql = "SELECT t.* FROM tbl_transaksi_bahanbaku as t";
@@ -161,6 +199,29 @@ class view
         $hasil = $row -> fetchAll();
         return $hasil;
     }
+    public function getProductById($id)
+    {
+        $data = array();
+        $sql = "SELECT * FROM tbl_product WHERE recid = ?";
+        $row = $this->db->prepare($sql);
+        $row->execute(array($id));
+        $data = $row->fetch();
+        return $data;
+    }
+    public function getFormulasiByProduct($produk_id)
+    {
+        $sql = "SELECT f.recid, f.bahanbaku_id, f.qty_per_ton, f.uom, 
+        b.nama_bb, b.satuan 
+        FROM tbl_formulasi f 
+        JOIN tbl_bahan_baku b ON f.bahanbaku_id = b.recid 
+        WHERE f.produk_id = ?
+        ORDER BY b.nama_bb ASC";
+        $row = $this->db->prepare($sql);
+        $row->execute(array($produk_id));
+        return $row->fetchAll();
+    }
+
+
 
 
 

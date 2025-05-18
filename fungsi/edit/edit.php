@@ -116,14 +116,16 @@ if (!empty($_SESSION['admin'])) {
         $desc_product  = htmlentities($_POST['desc_product']);
         $grade         = htmlentities($_POST['grade']);
         $level         = htmlentities($_POST['level']);
+        $harga          = intval($_POST['harga']);
 
         $data[] = $nama_product;
         $data[] = $desc_product;
         $data[] = $grade;
         $data[] = $level;
+        $data[] = $harga;
         $data[] = $recid;
 
-        $sql = 'UPDATE tbl_product SET nama_product=?, desc_product=?, grade=?, level=? WHERE recid=?';
+        $sql = 'UPDATE tbl_product SET nama_product=?, desc_product=?, grade=?, level=?, hargaPerTon =? WHERE recid=?';
         $row = $config->prepare($sql);
         $row->execute($data);
 
@@ -197,6 +199,40 @@ if (!empty($_SESSION['admin'])) {
 
         // Redirect ke halaman awal dengan pesan sukses
         echo '<script>window.location="../../index.php?page=number_sequence&success=edit";</script>';
+    }
+
+    if (!empty($_GET['aksi']) && $_GET['aksi'] == "edit_inventaris_client") {
+        echo "<pre>";
+        print_r($_POST);
+        // Tangkap data dari form
+        $recid = $_POST['recid']; // ID relasi inventaris yang mau diupdate
+        $inven_id = $_POST['inven_id'];
+        $client_id = $_POST['client_id'];
+        $jml_total = $_POST['jml_total'];
+        $jml_active = $_POST['jml_active'];
+        $jml_nonactive = $_POST['jml_nonactive'];
+
+        // Validasi sederhana (opsional)
+        if ($jml_total < $jml_active + $jml_nonactive) {
+            echo "Jumlah total tidak boleh lebih kecil dari jumlah aktif + nonaktif!";
+            exit;
+        }
+
+        // Proses update ke database
+        $sql = "UPDATE tbl_relasi_inven SET 
+            inven_id = ?, 
+            jml_total = ?, 
+            jml_active = ?, 
+            jml_nonactive = ? 
+            WHERE recid = ?";
+        $query = $config->prepare($sql);
+        $sukses = $query->execute([$inven_id, $jml_total, $jml_active, $jml_nonactive, $recid]);
+
+        if ($sukses) {
+            header("Location: ../../index.php?page=client/details&client={$client_id}&success=edit");
+        } else {
+            echo "Gagal update data.";
+        }
     }
 
     if (!empty($_GET['transaksi_bahanbaku']) && $_GET['transaksi_bahanbaku'] == 'edit') {

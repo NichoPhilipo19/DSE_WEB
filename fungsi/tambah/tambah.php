@@ -76,9 +76,10 @@ if (!empty($_SESSION['admin'])) {
         $desc   = trim($_POST['desc_product']);
         $grade  = trim($_POST['grade']);
         $level  = trim($_POST['level']);
+        $harga = intval($_POST['harga']);
         // Siapkan query insert
-        $stmt = $config->prepare("INSERT INTO tbl_product (nama_product, desc_product, grade, level) VALUES (?, ?, ?, ?)");
-        $stmt->execute([$nama, $desc, $grade, $level]);
+        $stmt = $config->prepare("INSERT INTO tbl_product (nama_product, desc_product, grade, level, hargaPerTon) VALUES (?, ?, ?, ?, ?)");
+        $stmt->execute([$nama, $desc, $grade, $level, $harga]);
         header("Location: ../../index.php?page=product&success=1");
     }
 
@@ -154,6 +155,42 @@ if (!empty($_SESSION['admin'])) {
         echo '<script>window.location="../../index.php?page=user&success=tambah";</script>';
     }
 
+    if (!empty($_GET['formulasi']) && $_GET['formulasi'] == 'tambah') {
+        echo "<pre>";
+        // Ambil dan sanitasi input
+        $produk_id     = intval($_POST['produk_id']);
+        $bahanbaku_id  = intval($_POST['bahanbaku_id']);
+        $qty_per_ton   = floatval($_POST['qty_per_ton']);
+        $uom           = htmlentities($_POST['uom']);
+
+        // Data yang akan disisipkan ke dalam tabel
+        $data = [$produk_id, $bahanbaku_id, $qty_per_ton, $uom];
+        // print_r($data);
+        // Query insert
+        $sql = "INSERT INTO tbl_formulasi (produk_id, bahanbaku_id, qty_per_ton, uom)
+                VALUES (?, ?, ?, ?)";
+
+        $stmt = $config->prepare($sql);
+        $stmt->execute($data);
+
+        // Redirect ke halaman detail produk dengan pesan sukses
+        echo '<script>window.location="../../index.php?page=product/details&product=' . $produk_id . '&success=formulasi";</script>';
+    }
+    if ($_GET['aksi'] == 'tambah_inventaris_client') {
+        $client_id = $_POST['client_id'];
+        $inven_id = $_POST['inven_id'];
+        $jml_total = $_POST['jml_total'];
+        $jml_active = $_POST['jml_active'];
+        $jml_nonactive = $_POST['jml_nonactive'];
+
+        $sql = "INSERT INTO tbl_relasi_inven (client_id, inven_id, jml_total, jml_active, jml_nonactive) VALUES (?, ?, ?, ?, ?)";
+        $query = $config->prepare($sql);
+        $query->execute([$client_id, $inven_id, $jml_total, $jml_active, $jml_nonactive]);
+
+        header("location:../../index.php?page=client/details&client=$client_id&relasi_inven=tambah");
+    }
+
+
     if (!empty($_GET['transaksi_bahan_baku'])) {
         echo "<pre>";
 
@@ -166,9 +203,6 @@ if (!empty($_SESSION['admin'])) {
             $qty            = floatval($_POST['qty']);
             $uom            = htmlentities($_POST['uom']);
             $username       = htmlentities($_SESSION['admin']["username"]);
-
-            echo "Sanitized Input:\n";
-            var_dump($date, $bahanbaku_id, $qty, $uom);
 
             // Siapkan data
             $data = [$date, $bahanbaku_id, $qty, $uom, $username, $username];
@@ -198,77 +232,9 @@ if (!empty($_SESSION['admin'])) {
         exit; // Hentikan agar tidak redirect saat debugging
     }
 
-
-
-
-
-    if (!empty($_GET['kategori'])) {
-        $nama = htmlentities(htmlentities($_POST['kategori']));
-        $tgl = date("j F Y, G:i");
-        $data[] = $nama;
-        $data[] = $tgl;
-        $sql = 'INSERT INTO kategori (nama_kategori,tgl_input) VALUES(?,?)';
-        $row = $config->prepare($sql);
-        $row->execute($data);
-        echo '<script>window.location="../../index.php?page=kategori&&success=tambah-data"</script>';
-    }
-
-    if (!empty($_GET['barang'])) {
-        $id = htmlentities($_POST['id']);
-        $kategori = htmlentities($_POST['kategori']);
-        $nama = htmlentities($_POST['nama']);
-        $merk = htmlentities($_POST['merk']);
-        $beli = htmlentities($_POST['beli']);
-        $jual = htmlentities($_POST['jual']);
-        $satuan = htmlentities($_POST['satuan']);
-        $stok = htmlentities($_POST['stok']);
-        $tgl = htmlentities($_POST['tgl']);
-
-        $data[] = $id;
-        $data[] = $kategori;
-        $data[] = $nama;
-        $data[] = $merk;
-        $data[] = $beli;
-        $data[] = $jual;
-        $data[] = $satuan;
-        $data[] = $stok;
-        $data[] = $tgl;
-        $sql = 'INSERT INTO barang (id_barang,id_kategori,nama_barang,merk,harga_beli,harga_jual,satuan_barang,stok,tgl_input) 
-			    VALUES (?,?,?,?,?,?,?,?,?) ';
-        $row = $config->prepare($sql);
-        $row->execute($data);
-        echo '<script>window.location="../../index.php?page=barang&success=tambah-data"</script>';
-    }
-
-    if (!empty($_GET['jual'])) {
-        $id = $_GET['id'];
-
-        // get tabel barang id_barang
-        $sql = 'SELECT * FROM barang WHERE id_barang = ?';
-        $row = $config->prepare($sql);
-        $row->execute(array($id));
-        $hsl = $row->fetch();
-
-        if ($hsl['stok'] > 0) {
-            $kasir =  $_GET['id_kasir'];
-            $jumlah = 1;
-            $total = $hsl['harga_jual'];
-            $tgl = date("j F Y, G:i");
-
-            $data1[] = $id;
-            $data1[] = $kasir;
-            $data1[] = $jumlah;
-            $data1[] = $total;
-            $data1[] = $tgl;
-
-            $sql1 = 'INSERT INTO penjualan (id_barang,id_member,jumlah,total,tanggal_input) VALUES (?,?,?,?,?)';
-            $row1 = $config->prepare($sql1);
-            $row1->execute($data1);
-
-            echo '<script>window.location="../../index.php?page=jual&success=tambah-data"</script>';
-        } else {
-            echo '<script>alert("Stok Barang Anda Telah Habis !");
-					window.location="../../index.php?page=jual#keranjang"</script>';
-        }
+    if (!empty($_GET['jual']) && $_GET['jual'] === "tambah") {
+        echo "<pre>";
+        $input = json_decode(file_get_contents("php://input"), true);
+        var_dump($input);
     }
 }

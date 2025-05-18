@@ -28,6 +28,7 @@
                     <th>Deskripsi</th>
                     <th>Grade</th>
                     <th>Level</th>
+                    <th>Harga Per Ton</th>
                     <th>Aksi</th>
                 </tr>
             </thead>
@@ -43,21 +44,26 @@
                         <td><?= $isi['desc_product']; ?></td>
                         <td><?= $isi['grade']; ?></td>
                         <td><?= $isi['level']; ?></td>
+                        <td>Rp <?= number_format($isi['hargaPerTon'], 0, ',', '.') ?></td>
                         <td>
+                            <a href="index.php?page=product/details&product=<?php echo $isi['recid']; ?>"><button
+                                    class="btn btn-primary btn-xs">Details</button></a>
                             <button class="btn btn-warning btn-xs btn-edit"
                                 data-toggle="modal" data-target="#myModal"
                                 data-id="<?= $isi['recid']; ?>"
                                 data-nama="<?= $isi['nama_product']; ?>"
                                 data-desc="<?= $isi['desc_product']; ?>"
                                 data-grade="<?= $isi['grade']; ?>"
-                                data-level="<?= $isi['level']; ?>">Edit</button>
+                                data-level="<?= $isi['level']; ?>"
+                                data-harga="<?= $isi['hargaPerTon']; ?>">Edit</button>
                             <a href="fungsi/hapus/hapus.php?product=hapus&id=<?= $isi['recid']; ?>"
                                 onclick="return confirm('Hapus Data produk?');">
                                 <button class="btn btn-danger btn-xs">Hapus</button>
                             </a>
                         </td>
                     </tr>
-                <?php $no++; } ?>
+                <?php $no++;
+                } ?>
             </tbody>
         </table>
     </div>
@@ -88,7 +94,9 @@
                             <td>
                                 <select class="form-control" name="grade" id="input-grade" required>
                                     <option value="">- Pilih Grade -</option>
-                                    <?php foreach (['A','B','C','D','F','G','H'] as $g) { echo "<option value='$g'>$g</option>"; } ?>
+                                    <?php foreach (['A', 'B', 'C', 'D', 'F', 'G', 'H'] as $g) {
+                                        echo "<option value='$g'>$g</option>";
+                                    } ?>
                                 </select>
                             </td>
                         </tr>
@@ -97,8 +105,18 @@
                             <td>
                                 <select class="form-control" name="level" id="input-level" required>
                                     <option value="">- Pilih Level -</option>
-                                    <?php foreach (['1','2','3','4'] as $l) { echo "<option value='$l'>$l</option>"; } ?>
+                                    <?php foreach (['1', '2', '3', '4'] as $l) {
+                                        echo "<option value='$l'>$l</option>";
+                                    } ?>
                                 </select>
+
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Harga per Ton</td>
+                            <td>
+                                <input type="text" class="form-control" id="input-harga-format" required>
+                                <input type="hidden" name="harga" id="input-harga"> <!-- ini yang dikirim ke PHP -->
                             </td>
                         </tr>
                     </table>
@@ -121,6 +139,21 @@
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 
 <script>
+    function formatRupiah(angka) {
+        var number_string = angka.replace(/[^,\d]/g, '').toString(),
+            split = number_string.split(','),
+            sisa = split[0].length % 3,
+            rupiah = split[0].substr(0, sisa),
+            ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+
+        if (ribuan) {
+            let separator = sisa ? '.' : '';
+            rupiah += separator + ribuan.join('.');
+        }
+
+        rupiah = split[1] !== undefined ? rupiah + ',' + split[1] : rupiah;
+        return 'Rp ' + rupiah;
+    }
     $(document).ready(function() {
         $('[data-toggle="modal"]').on('click', function() {
             const isEdit = $(this).hasClass('btn-edit');
@@ -128,12 +161,15 @@
                 $('#modal-title').html('<i class="fa fa-edit"></i> Edit Produk');
                 $('#form-produk').attr('action', 'fungsi/edit/edit.php?product=edit');
                 $('#btn-submit').html('<i class="fa fa-save"></i> Update Data');
-
+                var harga = $(this).data('harga').toString();
+                // alert(harga, formatRupiah(harga));
                 $('#input-id').val($(this).data('id'));
                 $('#input-nama').val($(this).data('nama'));
                 $('#input-desc').val($(this).data('desc'));
                 $('#input-grade').val($(this).data('grade'));
                 $('#input-level').val($(this).data('level'));
+                $('#input-harga-format').val(formatRupiah(harga));
+                $('#input-harga').val(harga);
             } else {
                 $('#modal-title').html('<i class="fa fa-plus"></i> Tambah Produk');
                 $('#form-produk').attr('action', 'fungsi/tambah/tambah.php?product=tambah');
@@ -141,6 +177,11 @@
                 $('#form-produk')[0].reset();
                 $('#input-id').val('');
             }
+        });
+        $('#input-harga-format').on('input', function() {
+            let raw = $(this).val().replace(/[^0-9]/g, ''); // Ambil angka mentah
+            $('#input-harga').val(raw); // Simpan ke hidden input
+            $(this).val(formatRupiah(raw)); // Tampilkan format Rupiah
         });
     });
 </script>

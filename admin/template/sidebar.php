@@ -1,7 +1,7 @@
 <!--sidebar start-->
-<?php 
-    $id = $_SESSION['admin']['id_member'];
-    $hasil_profil = $lihat -> member_edit($id);
+<?php
+$id = $_SESSION['admin']['id_member'];
+$hasil_profil = $lihat->member_edit($id);
 ?>
 <!-- Sidebar -->
 <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
@@ -40,6 +40,7 @@
         <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
             <div class="bg-white py-2 collapse-inner rounded">
                 <!-- <h6 class="collapse-header">Custom Components:</h6> -->
+                <a class="collapse-item" href="index.php?page=debug">debug</a>
                 <a class="collapse-item" href="index.php?page=bahanbaku">Bahan Baku</a>
                 <a class="collapse-item" href="index.php?page=client">Client</a>
                 <a class="collapse-item" href="index.php?page=inventaris">Inventaris</a>
@@ -97,7 +98,7 @@
             <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
                 <i class="fa fa-bars"></i>
             </button>
-            <h5 class="d-lg-block d-none mt-2"><b><?php echo $toko['nama_toko'];?>, <?php echo $toko['alamat_toko'];?></b></h5>
+            <h5 class="d-lg-block d-none mt-2"><b><?php echo $toko['nama_toko']; ?>, <?php echo $toko['alamat_toko']; ?></b></h5>
             <!-- Topbar Navbar -->
             <ul class="navbar-nav ml-auto">
                 <!-- <div class="topbar-divider d-none d-sm-block"></div> -->
@@ -107,9 +108,9 @@
                     <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown"
                         aria-haspopup="true" aria-expanded="false">
                         <img class="img-profile rounded-circle"
-                            src="assets/img/user/<?php echo $hasil_profil['gambar'];?>">
+                            src="assets/img/user/<?php echo $hasil_profil['gambar']; ?>">
                         <span
-                            class="mr-2 d-none d-lg-inline text-gray-600 small ml-2"><?php echo $hasil_profil['nm_member'];?></span>
+                            class="mr-2 d-none d-lg-inline text-gray-600 small ml-2"><?php echo $hasil_profil['nm_member']; ?></span>
                         <i class="fas fa-angle-down"></i>
                     </a>
                     <!-- Dropdown - User Information -->
