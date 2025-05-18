@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: May 16, 2025 at 04:29 PM
+-- Generation Time: May 18, 2025 at 08:14 PM
 -- Server version: 10.4.11-MariaDB
 -- PHP Version: 7.3.15
 
@@ -43,7 +43,7 @@ CREATE TABLE `number_sequences` (
 
 INSERT INTO `number_sequences` (`recid`, `prefix`, `kode_perusahaan`, `bulan`, `tahun`, `last_number`) VALUES
 (1, 'PO', 'DSE', 1, 2025, '1'),
-(7, 'INV', 'DSE', 1, 2025, '0000');
+(7, 'INV', 'DSE', 1, 2025, '0');
 
 -- --------------------------------------------------------
 
@@ -65,10 +65,10 @@ CREATE TABLE `tbl_bahan_baku` (
 --
 
 INSERT INTO `tbl_bahan_baku` (`recid`, `nama_bb`, `desc`, `stok`, `satuan`, `supp_id`) VALUES
-(2, 'bahan baku', 'tes', 100, 'Kg', 1),
+(2, 'bahan baku', 'tes', 6000, 'Kg', 1),
 (3, 'bahan baku  TOKO B', 'bahan baku TOKO B', 6100, 'Kg', 2),
-(8, 'tes', 'tes', 0, 'Liter', 1),
-(9, 'tess', 'sasaas', 0, 'Kg', 1);
+(8, 'tes', 'tes', 5000, 'Liter', 1),
+(9, 'tess', 'sasaas', 500, 'Kg', 1);
 
 -- --------------------------------------------------------
 
@@ -92,6 +92,30 @@ CREATE TABLE `tbl_client` (
 
 INSERT INTO `tbl_client` (`recid`, `nama_client`, `alamat`, `status`, `email`, `no_telp`, `fax`) VALUES
 (1, 'PT Erricon', 'Cibarusah', 1, 'erricon@gmail.com', 123, 312);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `tbl_formulasi`
+--
+
+CREATE TABLE `tbl_formulasi` (
+  `recid` int(11) NOT NULL,
+  `produk_id` int(11) NOT NULL,
+  `bahanbaku_id` int(11) NOT NULL,
+  `qty_per_ton` decimal(10,2) NOT NULL,
+  `uom` varchar(20) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `tbl_formulasi`
+--
+
+INSERT INTO `tbl_formulasi` (`recid`, `produk_id`, `bahanbaku_id`, `qty_per_ton`, `uom`) VALUES
+(11, 1, 3, '500.00', 'Kg'),
+(13, 1, 2, '500.00', 'Kg'),
+(14, 2, 8, '50.00', 'Liter'),
+(15, 2, 9, '50.00', 'Kg');
 
 -- --------------------------------------------------------
 
@@ -128,16 +152,18 @@ CREATE TABLE `tbl_product` (
   `nama_product` varchar(50) NOT NULL,
   `desc_product` varchar(255) NOT NULL,
   `grade` enum('A','B','C','D','F','G','H') NOT NULL,
-  `level` enum('1','2','3','4') NOT NULL
+  `level` enum('1','2','3','4') NOT NULL,
+  `hargaPerTon` int(15) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `tbl_product`
 --
 
-INSERT INTO `tbl_product` (`recid`, `nama_product`, `desc_product`, `grade`, `level`) VALUES
-(1, 'rekton type F', 'untuk percepatan pengerasan beton K-125 di bawah 6 jam', 'F', '1'),
-(2, 'tessss', 'tes ajaaaa', 'B', '4');
+INSERT INTO `tbl_product` (`recid`, `nama_product`, `desc_product`, `grade`, `level`, `hargaPerTon`) VALUES
+(1, 'rekton type F', 'untuk percepatan pengerasan beton K-125 di bawah 6 jam', 'F', '1', 1000000),
+(2, 'tessss', 'tes ajaaaa', 'B', '4', 2000000),
+(4, 'tesz', 'tesaz', 'A', '2', 3000000);
 
 -- --------------------------------------------------------
 
@@ -246,7 +272,7 @@ INSERT INTO `tbl_transaksi_bahanbaku` (`recid`, `tgl`, `no_po`, `no_invoice`, `b
 (12, '2025-05-10', NULL, NULL, NULL, NULL, NULL, 0, 500, 'Kg', 9, NULL, NULL, NULL, '0000-00-00', NULL, NULL, NULL, 0, '', NULL, NULL),
 (13, '2025-05-16', '0001/PO/DSE/1/2025', NULL, NULL, NULL, NULL, 1, 44, 'Kg', 3, NULL, NULL, NULL, '0000-00-00', NULL, NULL, NULL, 0, '', 'admin', 'admin'),
 (14, '2025-05-16', NULL, NULL, NULL, NULL, NULL, 0, 44, 'Kg', 3, NULL, NULL, NULL, '0000-00-00', NULL, NULL, NULL, 0, '', 'admin', 'admin'),
-(15, '2025-05-16', '0005/PO/DSE/1/2025', '0001/PO/tokoooo/1/2025', NULL, '5000.00', NULL, 2, 5556, 'Liter', 3, NULL, 100000, 'Screenshot 2025-04-21 at 04.48.17.png', '2025-05-16', 1, 6000, NULL, 0, 'tes', 'admin', 'admin'),
+(15, '2025-05-16', '0005/PO/DSE/1/2025', '0001/INV/tokoooo/1/2025', NULL, '5000.00', NULL, 2, 5556, 'Liter', 3, NULL, 100000, 'Screenshot 2025-04-21 at 04.48.17.png', '2025-05-16', 1, 6000, NULL, 0, 'tes', 'admin', 'admin'),
 (16, '2025-05-16', NULL, NULL, NULL, NULL, NULL, 0, 44444, 'Kg', 3, 1, NULL, NULL, '0000-00-00', NULL, NULL, NULL, 0, '', 'admin', 'admin'),
 (17, '2025-05-16', '0004/PO/DSE/1/2025', '0004/PO/TOKO-B/1/2025', NULL, '1000000.00', NULL, 1, 906, 'Kg', 3, 2, NULL, NULL, '0000-00-00', NULL, NULL, NULL, 0, '', 'admin', 'admin');
 
@@ -358,6 +384,14 @@ ALTER TABLE `tbl_client`
   ADD UNIQUE KEY `email` (`email`);
 
 --
+-- Indexes for table `tbl_formulasi`
+--
+ALTER TABLE `tbl_formulasi`
+  ADD PRIMARY KEY (`recid`),
+  ADD UNIQUE KEY `unique_produk_bahanbaku` (`produk_id`,`bahanbaku_id`),
+  ADD KEY `bahanbaku_id` (`bahanbaku_id`);
+
+--
 -- Indexes for table `tbl_inventaris`
 --
 ALTER TABLE `tbl_inventaris`
@@ -450,6 +484,12 @@ ALTER TABLE `tbl_client`
   MODIFY `recid` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
+-- AUTO_INCREMENT for table `tbl_formulasi`
+--
+ALTER TABLE `tbl_formulasi`
+  MODIFY `recid` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+
+--
 -- AUTO_INCREMENT for table `tbl_inventaris`
 --
 ALTER TABLE `tbl_inventaris`
@@ -459,13 +499,13 @@ ALTER TABLE `tbl_inventaris`
 -- AUTO_INCREMENT for table `tbl_product`
 --
 ALTER TABLE `tbl_product`
-  MODIFY `recid` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `recid` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `tbl_relasi_inven`
 --
 ALTER TABLE `tbl_relasi_inven`
-  MODIFY `recid` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `recid` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `tbl_supplier`
@@ -513,6 +553,13 @@ ALTER TABLE `uom`
 ALTER TABLE `tbl_bahan_baku`
   ADD CONSTRAINT `fk_bahanbaku_uom` FOREIGN KEY (`satuan`) REFERENCES `uom` (`kode_uom`) ON UPDATE CASCADE,
   ADD CONSTRAINT `tbl_bahan_baku_ibfk_1` FOREIGN KEY (`supp_id`) REFERENCES `tbl_supplier` (`recid`);
+
+--
+-- Constraints for table `tbl_formulasi`
+--
+ALTER TABLE `tbl_formulasi`
+  ADD CONSTRAINT `tbl_formulasi_ibfk_1` FOREIGN KEY (`produk_id`) REFERENCES `tbl_product` (`recid`),
+  ADD CONSTRAINT `tbl_formulasi_ibfk_2` FOREIGN KEY (`bahanbaku_id`) REFERENCES `tbl_bahan_baku` (`recid`);
 
 --
 -- Constraints for table `tbl_relasi_inven`
