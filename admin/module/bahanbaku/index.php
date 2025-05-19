@@ -75,17 +75,17 @@
                                 <td><?php echo $isi['satuan']; ?></td>
                                 <td>
                                     <?php if ($isi['stok'] <=  '3') { ?>
-                                        <form method="POST" action="index.php?page=transaksi_bahan_baku&openModal=tambah&recid=<?php echo $isi['recid']; ?>">
-                                            <!-- <input type="text" name="restok" class="form-control">
-                                            <input type="hidden" name="id" value="<?php echo $isi['recid']; ?>"
-                                                class="form-control"> -->
+
+                                        <a href="index.php?page=transaksi_bahan_baku&openModal=tambah&recid=<?php echo $isi['recid']; ?>"
+                                            onclick="javascript:return confirm('Order Bahan Baku?');">
                                             <button class="btn btn-primary btn-sm">
                                                 Restok
                                             </button>
-                                            <a href="fungsi/hapus/hapus.php?bahanbaku=hapus&id=<?php echo $isi['recid']; ?>"
-                                                onclick="javascript:return confirm('Hapus Data bahanbaku ?');">
-                                                <button class="btn btn-danger btn-sm">Hapus</button></a>
-                                        </form>
+                                        </a>
+                                        <a href="fungsi/hapus/hapus.php?bahanbaku=hapus&id=<?php echo $isi['recid']; ?>"
+                                            onclick="javascript:return confirm('Hapus Data bahanbaku ?');">
+                                            <button class="btn btn-danger btn-sm">Hapus</button></a>
+
                                     <?php } else { ?>
                                         <a href="index.php?page=bahanbaku/details&bahanbaku=<?php echo $isi['recid']; ?>"><button
                                                 class="btn btn-primary btn-xs">Details</button></a>
@@ -149,11 +149,11 @@
                                         </select>
                                     </td>
                                 </tr>
-                                <tr>
+                                <!-- <tr>
                                     <td>Stok</td>
                                     <td><input type="text" placeholder="Stok" readonly class="form-control"
                                             name="stok" value="0"></td>
-                                </tr>
+                                </tr> -->
                                 <tr>
                                     <td>Supplier</td>
                                     <td>

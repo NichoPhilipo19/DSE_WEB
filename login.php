@@ -7,28 +7,33 @@
 		$user = strip_tags($_POST['user']);
 		$pass = strip_tags($_POST['pass']);
 
-		// $sql = 'select member.*, login.user, login.pass
-		// 		from member inner join login on member.id_member = login.id_member
-		// 		where user =? and pass = md5(?)';
-		$sql = ' select * from tbl_user where username =? and password =?';
-		$row = $config->prepare($sql);
-		$row -> execute(array($user,$pass));
-		$jum = $row -> rowCount();
-		if ($jum > 0) {
-			$hasil = $row->fetch();
-			
+	// $sql = 'select member.*, login.user, login.pass
+	// 		from member inner join login on member.id_member = login.id_member
+	// 		where user =? and pass = md5(?)';
+	$sql = 'SELECT * FROM tbl_user WHERE username = :user OR email = :user';
+	$stmt = $config->prepare($sql);
+	$stmt->execute(['user' => $user]);
+
+	if ($stmt->rowCount() > 0) {
+		$hasil = $stmt->fetch(PDO::FETCH_ASSOC);
+
+		// Cek password-nya
+		if ($hasil['password'] === $pass) {
+			// Cek status aktif atau tidak
 			if ($hasil['status'] == 0) {
 				echo '<script>alert("Akun Anda tidak aktif!");history.go(-1);</script>';
 				exit;
 			}
-		
+
 			$_SESSION['admin'] = $hasil;
-			echo '<script>alert("Login Sukses");window.location="index.php"</script>';
+			echo '<script>alert("Login Sukses");window.location="index.php";</script>';
 		} else {
-			echo '<script>alert("Login Gagal");history.go(-1);</script>';
+			echo '<script>alert("Password salah!");history.go(-1);</script>';
 		}
-		
+	} else {
+		echo '<script>alert("Username atau email tidak ditemukan!");history.go(-1);</script>';
 	}
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">

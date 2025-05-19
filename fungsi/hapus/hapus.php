@@ -5,12 +5,29 @@ if (!empty($_SESSION['admin'])) {
     require '../../config.php';
 
     if (!empty(htmlentities($_GET['bahanbaku']))) {
-        $id= htmlentities($_GET['id']);
+        $id = intval($_GET['id']);
         $data[] = $id;
-        $sql = 'DELETE FROM tbl_bahan_baku WHERE recid=?';
-        $row = $config -> prepare($sql);
-        $row -> execute($data);
-        echo '<script>window.location="../../index.php?page=bahanbaku&&remove=hapus-data"</script>';
+        // cek table formulasi
+        $cek = "SELECT * FROM tbl_formulasi WHERE bahanbaku_id = :id";
+        $cekHasil = $config->prepare($cek);
+        $cekHasil->execute(['id' => $id]);
+
+        $cekValidasi = $cekHasil->fetchAll(); // Ambil semua hasil query
+        // cek table formulasi
+        if (count($cekValidasi) > 0) {
+            // Ada data yang dikembalikan
+            echo "<script>
+                    alert('tidak bisa di hapus, Bahan baku di gunakan pada formulasi');
+                    window.history.back();
+                </script>";
+        } else {
+            // Tidak ada data
+            // echo "Tidak ada relasi di tabel formulasi.";
+            $sql = 'DELETE FROM tbl_bahan_baku WHERE recid=?';
+            $row = $config->prepare($sql);
+            $row->execute($data);
+            echo '<script>window.location="../../index.php?page=bahanbaku&&remove=hapus-data"</script>';
+        }
     }
 
     if (!empty(htmlentities($_GET['client']))) {
@@ -20,6 +37,17 @@ if (!empty($_SESSION['admin'])) {
         $row = $config -> prepare($sql);
         $row -> execute($data);
         echo '<script>window.location="../../index.php?page=client&&remove=hapus-data"</script>';
+    }
+
+    if (!empty(htmlentities($_GET['uom']))) {
+        $id = intval($_GET['id']);
+
+        // Hapus dari DB
+        $stmt = $config->prepare("DELETE FROM uom WHERE recid = ?");
+        $stmt->execute([$id]);
+
+        header("Location: ../../index.php?page=uom&remove=1");
+        exit;
     }
 
     if (!empty(htmlentities($_GET['inventaris']))) {
@@ -78,6 +106,16 @@ if (!empty($_SESSION['admin'])) {
         $row->execute([$id]);
     
         echo '<script>window.location="../../index.php?page=number_sequence&remove=hapus";</script>';
+    }
+
+    if (!empty($_GET['transaksi_bahan_baku'])) {
+        $id = $_GET['id'];
+
+        $sql = "DELETE FROM tbl_transaksi_bahanbaku WHERE recid = ?";
+        $row = $config->prepare($sql);
+        $row->execute([$id]);
+
+        echo '<script>window.location="../../index.php?page=transaksi_bahan_baku&success=hapus";</script>';
     }
 
     if (!empty($_GET['formulasi']) && $_GET['formulasi'] == 'hapus') {

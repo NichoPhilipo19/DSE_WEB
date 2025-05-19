@@ -149,6 +149,19 @@ if (!empty($_SESSION['admin'])) {
 
         echo '<script>window.location="../../index.php?page=supplier&success=edit";</script>';
     }
+    if (!empty($_GET['uom'])) {
+        $id = intval($_POST['recid']);
+        $kode = trim($_POST['kode_uom']);
+        $nama = trim($_POST['nama_uom']);
+        $batas = intval($_POST['batas_aman']);
+
+        // Update DB
+        $stmt = $config->prepare("UPDATE uom SET kode_uom = ?, nama_uom = ?, batas_aman = ? WHERE recid = ?");
+        $stmt->execute([$kode, $nama, $batas, $id]);
+
+        header("Location: ../../index.php?page=uom&edit=1");
+        exit;
+    }
 
     if (!empty($_GET['tempat_produksi'])) {
         $recid  = $_POST['recid'];
@@ -258,10 +271,10 @@ if (!empty($_SESSION['admin'])) {
 
     if (!empty($_GET['order_transaksi_bahanbaku'])) {
         $recid = $_POST['recid_order'];
-        // $bulan = date("m");
-        // $tahun = date("Y");
-        $bulan = 1;
-        $tahun = 2025;
+        $bulan = date("m");
+        $tahun = date("Y");
+        // $bulan = 1;
+        // $tahun = 2025;
         $prefix = "PO"; // atau bisa ambil dari config
 
         try {
@@ -269,11 +282,11 @@ if (!empty($_SESSION['admin'])) {
             $stmt_seq = $config->prepare($sql_seq);
             $stmt_seq->execute([$prefix, $bulan, $tahun]);
             $seq = $stmt_seq->fetch();
-
+            var_dump($seq);
             if ($seq) {
                 $kode_perusahaan = $seq['kode_perusahaan'];
                 $last_number = intval($seq['last_number']) + 1;
-                $no_po = str_pad($last_number, 4, '0', STR_PAD_LEFT) . '/' . $prefix . '/' . $kode_perusahaan . '/' . $bulan . '/' . $tahun;
+                $no_po = str_pad($last_number, 4, '0', STR_PAD_LEFT) . '/' . $prefix . '/' . $kode_perusahaan . '-' . $bulan . '/' . $tahun;
 
                 $sql = "UPDATE tbl_transaksi_bahanbaku SET status = 1, no_po = '$no_po' WHERE recid = ?";
                 $stmt = $config->prepare($sql);
@@ -285,7 +298,11 @@ if (!empty($_SESSION['admin'])) {
 
                 echo '<script>window.location="../../index.php?page=transaksi_bahan_baku&success=order";</script>';
             } else {
-                echo "Nomor urut tidak ditemukan untuk prefix $prefix/$kode_perusahaan/$bulan/$tahun.";
+                echo "<script>
+                    alert('Nomor urut tidak ditemukan untuk prefix $prefix.');
+                    window.history.back();
+                </script>";
+                // echo "Nomor urut tidak ditemukan untuk prefix $prefix/$kode_perusahaan/$bulan/$tahun.";
             }
         } catch (PDOException $e) {
             echo "Error: " . $e->getMessage();

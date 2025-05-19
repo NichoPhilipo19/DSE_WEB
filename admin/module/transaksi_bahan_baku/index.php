@@ -29,6 +29,11 @@ $bahanbaku = $lihat->bahanbaku();
         <p>Status berhasil diubah menjadi Finish !</p>
     </div>
 <?php } ?>
+<?php if (isset($_GET['success']) && $_GET['success'] == 'hapus') { ?>
+    <div class="alert alert-success">
+        <p>Data berhasil di hapus !</p>
+    </div>
+<?php } ?>
 
 <!-- Tombol tambah -->
 <button class="btn btn-primary mb-3" data-toggle="modal" data-target="#modalTambah">
@@ -62,7 +67,7 @@ $bahanbaku = $lihat->bahanbaku();
                         <td><?= date('Y/m/d', strtotime($row['tgl'])) ?></td>
                         <td><?= $row['no_po'] ?></td>
                         <td>
-                            <?php if (empty($row['no_invoice'])) { ?>
+                            <?php if (!empty($row['no_po']) && empty($row['no_invoice'])) { ?>
                                 <button
                                     class="btn btn-success btn-xs btn-add-invoice"
                                     data-toggle="modal" data-target="#modalAddInvoice"
@@ -115,7 +120,7 @@ $bahanbaku = $lihat->bahanbaku();
                                     data-uom="<?= $row['uom']; ?>"
                                     data-supp="<?= $row['supp_id']; ?>">Edit</button>
 
-                                <a href="fungsi/hapus/hapus.php?number_sequence=hapus&id=<?= $row['recid']; ?>"
+                                <a href="fungsi/hapus/hapus.php?transaksi_bahan_baku=hapus&id=<?= $row['recid']; ?>"
                                     onclick="return confirm('Hapus Data ?');">
                                     <button class="btn btn-danger btn-xs">Hapus</button>
                                 </a>

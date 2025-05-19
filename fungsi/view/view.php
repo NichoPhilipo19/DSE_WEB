@@ -142,6 +142,14 @@ class view
         $hasil = $row -> fetchAll();
         return $hasil;
     }
+    public function uomList()
+    {
+        $sql = "SELECT * FROM uom";
+        $row = $this->db->prepare($sql);
+        $row->execute();
+        $hasil = $row->fetchAll();
+        return $hasil;
+    }
     public function numberSequence()
     {
         $sql = "SELECT * FROM number_sequences";

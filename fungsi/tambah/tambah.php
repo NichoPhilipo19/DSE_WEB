@@ -5,22 +5,23 @@ if (!empty($_SESSION['admin'])) {
     require '../../config.php';
 
     if (!empty($_GET['bahanbaku'])) {
+        echo "<pre>";
         $nama = htmlentities($_POST['nama']);
         $desc = htmlentities($_POST['desc']);
         $satuan = htmlentities($_POST['satuan']);
-        $stok = htmlentities($_POST['stok']);
+        // $stok = htmlentities($_POST['stok']);
         $supplier = htmlentities($_POST['supplier']);
 
         $data[] = $nama;
         $data[] = $desc;
-        $data[] = $stok;
+        $data[] = 0;
         $data[] = $satuan;
         $data[] = $supplier;
-        $sql = 'INSERT INTO tbl_bahan_baku (nama_bb, `desc`, stok, satuan, supp_id) 
+        $sql = 'INSERT INTO tbl_bahan_baku (nama_bb, `desc`,stok, satuan, supp_id) 
 			    VALUES (?,?,?,?,?) ';
         $row = $config->prepare($sql);
-        $row->execute($data);
-        // echo $row;
+        $hasil = $row->execute($data);
+        // var_dump($hasil);
         echo '<script>window.location="../../index.php?page=bahanbaku&success=tambah-data"</script>';
     }
 
@@ -81,6 +82,19 @@ if (!empty($_SESSION['admin'])) {
         $stmt = $config->prepare("INSERT INTO tbl_product (nama_product, desc_product, grade, level, hargaPerTon) VALUES (?, ?, ?, ?, ?)");
         $stmt->execute([$nama, $desc, $grade, $level, $harga]);
         header("Location: ../../index.php?page=product&success=1");
+    }
+    if (!empty($_GET['uom'])) {
+        // Ambil dan filter data input
+        $kode = trim($_POST['kode_uom']);
+        $nama = trim($_POST['nama_uom']);
+        $batas = intval($_POST['batas_aman']);
+
+        // Insert ke DB
+        $stmt = $config->prepare("INSERT INTO uom (kode_uom, nama_uom, batas_aman) VALUES (?, ?, ?)");
+        $stmt->execute([$kode, $nama, $batas]);
+
+        header("Location: ../../index.php?page=uom&success=1");
+        exit;
     }
 
     if (!empty($_GET['supplier'])) {
@@ -211,11 +225,11 @@ if (!empty($_SESSION['admin'])) {
             $sql = "INSERT INTO tbl_transaksi_bahanbaku (tgl, bahanbaku_id,supp_id, qty, uom, status, createdby, modifiedby) 
                     VALUES ('$date', $bahanbaku_id, $supp_id, $qty, '$uom', 0,'$username','$username')";
             // VALUES (?, ?, ?, ?, 0,?,?)";
-
+            print_r($sql);
 
             try {
                 $row = $config->prepare($sql);
-                $row->execute($data);
+                $row->execute();
                 // print_r($sql);
                 echo '<script>window.location="../../index.php?page=transaksi_bahan_baku&success=tambah";</script>';
             } catch (PDOException $e) {
@@ -235,6 +249,113 @@ if (!empty($_SESSION['admin'])) {
     if (!empty($_GET['jual']) && $_GET['jual'] === "tambah") {
         echo "<pre>";
         $input = json_decode(file_get_contents("php://input"), true);
-        var_dump($input);
+
+        //         // var_dump($input);
+
+        //         // Konversi format tanggal dari "19 May 2025, 17:27" ke "2025-05-19"
+        //         $tgl = date('Y-m-d', strtotime($input['tgl']));
+        //         $tgl_produksi = date('Y-m-d', strtotime($input['tgl_produksi']));
+
+        //         // Hapus "Rp" dan titik dari harga jika perlu
+        //         $harga = str_replace(['Rp', '.', ','], '', $input['harga']);
+        //         $harga = trim($harga);
+
+        //         // Data untuk binding
+        //         $data = [
+        //             $tgl,
+        //             $input['no_invoice'],
+        //             $harga,
+        //             $input['ppn'],
+        //             $input['qty'],
+        //             $input['total_harga'],
+        //             $input['pengiriman'],
+        //             $input['ongkir'],
+        //             $input['penanggung_ongkir'],
+        //             $input['tanggal_sampai'],
+        //             $input['tgl_jatuh_tempo'],
+        //             $input['status_pembayaran'],
+        //             $input['sisa_pembayaran'],
+        //             $input['sudah_diterima'],
+        //             $input['pakai_inventaris'],
+        //             $input['inven_id'],
+        //             $input['jml_inven'],
+        //             $input['client_id'],
+        //             $input['product_id'],
+        //             $tgl_produksi,
+        //             $input['tmpt_produksi_id'],
+        //             $input['status_produksi'],
+        //             $input['createdby'],
+        //             $input['modifiedby']
+        //         ];
+        //         var_dump($data);
+        //         // SQL Insert
+        //         $sql = "INSERT INTO transaksi_keluar (
+        //     tgl, no_invoice, harga, ppn, qty, total_harga,
+        //     pengiriman, ongkir, penanggung_ongkir, tanggal_sampai, tgl_jatuh_tempo,
+        //     status_pembayaran, sisa_pembayaran, sudah_diterima, pakai_inventaris,
+        //     inven_id, jml_inven, client_id, product_id, tgl_produksi,
+        //     tmpt_produksi_id, status_produksi, createdby, modifiedby
+        // ) VALUES (
+        //     ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+        // )";
+
+        //         // Eksekusi query
+        //         $row = $config->prepare($sql);
+        //         $row->execute($data);
+
+        //         echo '<script>window.location="../../index.php?page=jual&success=tambah";</script>';
+
+        // Konversi format & bersihkan input
+        $tgl = date('Y-m-d', strtotime($input['tgl']));
+        $tgl_produksi = date('Y-m-d', strtotime($input['tgl_produksi']));
+        $harga = str_replace(['Rp', '.', ','], '', $input['harga']);
+
+        $data = [
+            ':tgl' => $tgl,
+            ':no_invoice' => $input['no_invoice'],
+            ':harga' => $harga,
+            ':ppn' => $input['ppn'],
+            ':qty' => $input['qty'],
+            ':total_harga' => $input['total_harga'],
+            ':pengiriman' => $input['pengiriman'],
+            ':ongkir' => $input['ongkir'],
+            ':penanggung_ongkir' => $input['penanggung_ongkir'],
+            ':tanggal_sampai' => $input['tanggal_sampai'],
+            ':tgl_jatuh_tempo' => $input['tgl_jatuh_tempo'],
+            ':status_pembayaran' => $input['status_pembayaran'],
+            ':sisa_pembayaran' => $input['sisa_pembayaran'],
+            ':sudah_diterima' => $input['sudah_diterima'],
+            ':pakai_inventaris' => $input['pakai_inventaris'],
+            ':inven_id' => $input['inven_id'],
+            ':jml_inven' => $input['jml_inven'],
+            ':client_id' => $input['client_id'],
+            ':product_id' => $input['product_id'],
+            ':tgl_produksi' => $tgl_produksi,
+            ':tmpt_produksi_id' => $input['tmpt_produksi_id'],
+            ':status_produksi' => $input['status_produksi'],
+            ':createdby' => $input['createdby'],
+            ':modifiedby' => $input['modifiedby']
+        ];
+
+        $sql = "INSERT INTO transaksi_keluar (
+    tgl, no_invoice, harga, ppn, qty, total_harga,
+    pengiriman, ongkir, penanggung_ongkir, tanggal_sampai, tgl_jatuh_tempo,
+    status_pembayaran, sisa_pembayaran, sudah_diterima, pakai_inventaris,
+    inven_id, jml_inven, client_id, product_id, tgl_produksi,
+    tmpt_produksi_id, status_produksi, createdby, modifiedby
+) VALUES (
+    :tgl, :no_invoice, :harga, :ppn, :qty, :total_harga,
+    :pengiriman, :ongkir, :penanggung_ongkir, :tanggal_sampai, :tgl_jatuh_tempo,
+    :status_pembayaran, :sisa_pembayaran, :sudah_diterima, :pakai_inventaris,
+    :inven_id, :jml_inven, :client_id, :product_id, :tgl_produksi,
+    :tmpt_produksi_id, :status_produksi, :createdby, :modifiedby
+)";
+
+        $row = $config->prepare($sql);
+        if (!$row->execute($data)) {
+            print_r($row->errorInfo()); // DEBUG error
+        } else {
+            echo '<script>window.location="../../index.php?page=jual&success=tambah";</script>';
+        }
     }
 }

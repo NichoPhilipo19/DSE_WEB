@@ -9,12 +9,17 @@
 	$numbeq = $lihat->numberSequenceForTransaksi();
 	?>
  <h4>Penjualan</h4>
+ <input type="hidden" class="form-control" id="invoice" value="<? echo $numbeq; ?>">
+ <input type="hidden" class="form-control" id="username" value="<? echo $id; ?>">
  <br>
+ <?php if (isset($_GET['success']) && $_GET['success'] == 'tambah') { ?>
+ 	<div class="alert alert-success">
+ 		<p>Transaksi telah di tambahkan</p>
+ 	</div>
+ <?php } ?>
  <div class="row">
- 	<div class="col-sm-12">
+ 	<div class="col-sm-12" id="daftar-produk">
  		<div class="card card-primary mb-3">
- 			<input type="hidden" class="form-control" id="invoice" value="<? echo $numbeq; ?>">
-
  			<div class="card-header bg-primary text-white">
  				<h5><i class="fa fa-list"></i> Daftar Produk</h5>
  			</div>
@@ -89,8 +94,8 @@
  								<td> No</td>
  								<td> Nama Product</td>
  								<td style="width:10%;"> Jumlah (Ton's)</td>
- 								<td style="width:20%;"> Harga satuan</td>
- 								<td style="width:20%;"> Harga Total</td>
+ 								<td style="width:20%;"> Harga Per Ton</td>
+ 								<td style="width:20%;"> Harga (by Qty)</td>
  								<td> Aksi</td>
  							</tr>
  						</thead>
@@ -359,26 +364,30 @@
  				var formatRupiahConvert = formatRupiah(hargaTotal.toString());
 
  				var newRow = `
-            <tr data-id="${id}">
-                <td class="no"></td>
-                <td>
-				${nama}
-				<input type="hidden" class="form-control" name="recidProduct[]" readonly value="${recid}" />
-				</td>
-                <td><input type="number" class="form-control" name="jumlah[]" value="0.1" min="0.1" step="0.1" /></td>
-                <td><input type="text" class="form-control" name="harga[]" readonly value="${formatRupiah(harga.toString())}" /></td>
-                <td>
-					<input type="text" class="form-control" name="hargaTotal[]" readonly value="${formatRupiahConvert}" />
-					<input type="hidden" class="form-control" name="hargaTotalFix[]" value="${hargaTotal}" />
-				</td>
-                <td><button type="button" class="btn btn-danger btn-sm remove-row-trigger">Hapus</button></td>
-            </tr>
-        `;
+					<tr data-id="${id}">
+						<td class="no"></td>
+						<td>
+						${nama}
+						<input type="hidden" class="form-control" name="recidProduct[]" readonly value="${recid}" />
+						</td>
+						<td><input type="number" class="form-control" name="jumlah[]" value="0.1" min="0.1" step="0.1" /></td>
+						<td><input type="text" class="form-control" name="harga[]" readonly value="${formatRupiah(harga.toString())}" /></td>
+						<td>
+							<input type="text" class="form-control" name="hargaTotal[]" readonly value="${formatRupiahConvert}" />
+							<input type="hidden" class="form-control" name="hargaTotalFix[]" value="${hargaTotal}" />
+						</td>
+						<td><button type="button" class="btn btn-danger btn-sm remove-row-trigger">Hapus</button></td>
+					</tr>
+				`;
 
  				$('#table2 tbody').append(newRow);
 
  				// Sembunyikan baris di table1
  				$row.hide();
+
+ 				// sementara
+ 				$("#daftar-produk").hide()
+ 				// sementara
 
  				updateTable2Numbering();
  				updateTotalBayar();
@@ -394,6 +403,11 @@
  				$('#table1 tbody tr[data-id="' + id + '"]').show();
 
  				$row.remove();
+
+ 				// sementara
+ 				$("#daftar-produk").show()
+ 				// sementara
+
  				updateTable2Numbering();
  				loadPreviewBahanBaku();
  			});
@@ -506,11 +520,21 @@
  				$('#inventaris_options').toggle(this.checked);
  			});
 
+ 			// sementara
+ 			$('input[name="inventaris_id[]"]').on('change', function() {
+ 				// Uncheck semua checkbox
+ 				$('input[name="inventaris_id[]"]').prop('checked', false);
+ 				// Ceklis hanya yang diklik
+ 				$(this).prop('checked', true);
+ 			});
+ 			// sementara
+
  			$('#submitAllInput').on('click', function() {
 
  				const table = document.getElementById("table2");
  				const rows = table.querySelectorAll("tbody tr");
 
+ 				let total_harga = 0;
  				const data = [];
  				rows.forEach(row => {
  					const cells = row.querySelectorAll("td");
@@ -518,12 +542,15 @@
  					const produk = cells[1]?.innerText.trim();
  					const recid = cells[1]?.querySelector("input")?.value;
  					const jumlah = cells[2]?.querySelector("input")?.value;
+ 					const harga = cells[3]?.querySelector("input")?.value;
  					const total = cells[4]?.querySelector("input")?.value;
-
+ 					var totalReplace = total.replace(/[^0-9]/g, '')
+ 					total_harga = total_harga + parseInt(totalReplace)
  					data.push({
  						recid: recid,
  						produk: produk,
  						jumlah: jumlah,
+ 						harga: harga,
  						total: total.replace(/[^0-9]/g, '')
  					});
  				});
@@ -569,10 +596,32 @@
 
  				const payload = {
  					tgl: detailTambahan.tgl_transaksi,
- 					no_invoice: $("#jatuh_tempo").val(),
+ 					no_invoice: $("#invoice").val(),
+ 					harga: data[0].harga,
+ 					ppn: detailTambahan.ppn,
+ 					qty: data[0].jumlah,
+ 					total_harga: total_harga,
+ 					pengiriman: "Kurir Internal",
+ 					ongkir: detailTambahan.ongkir,
+ 					penanggung_ongkir: detailTambahan.freeOngkir,
+ 					tanggal_sampai: detailTambahan.estimasi,
+ 					tgl_jatuh_tempo: detailTambahan.jatuh_tempo,
+ 					status_pembayaran: detailTambahan.bayarDimuka,
+ 					sisa_pembayaran: 100,
+ 					sudah_diterima: 0,
+ 					pakai_inventaris: detailTambahan.use_inventaris,
+ 					inven_id: data2[0].recid,
+ 					jml_inven: data2[0].jumlah,
+ 					client_id: detailTambahan.client_select,
+ 					product_id: data[0].recid,
+ 					tgl_produksi: detailTambahan.tgl_transaksi,
+ 					tmpt_produksi_id: detailTambahan.produksi_select,
+ 					status_produksi: 0,
+ 					createdby: $("#username").val(),
+ 					modifiedby: $("#username").val(),
 
- 					dataInventaris: data2.filter(obj => obj.checked === 1),
- 					detail: detailTambahan
+ 					// dataInventaris: data2.filter(obj => obj.checked === 1),
+ 					// detail: detailTambahan
 
  				};
  				console.log(payload)
@@ -593,6 +642,96 @@
  					});
 
  			});
+ 			// $('#submitAllInput').on('click', function() {
+
+ 			// 	const table = document.getElementById("table2");
+ 			// 	const rows = table.querySelectorAll("tbody tr");
+
+ 			// 	const data = [];
+ 			// 	rows.forEach(row => {
+ 			// 		const cells = row.querySelectorAll("td");
+ 			// 		// Pastikan urutan sesuai dengan isi tabel Anda
+ 			// 		const produk = cells[1]?.innerText.trim();
+ 			// 		const recid = cells[1]?.querySelector("input")?.value;
+ 			// 		const jumlah = cells[2]?.querySelector("input")?.value;
+ 			// 		const harga = cells[3]?.querySelector("input")?.value;
+ 			// 		const total = cells[4]?.querySelector("input")?.value;
+
+ 			// 		data.push({
+ 			// 			recid: recid,
+ 			// 			produk: produk,
+ 			// 			jumlah: jumlah,
+ 			// 			harga: harga,
+ 			// 			total: total.replace(/[^0-9]/g, '')
+ 			// 		});
+ 			// 	});
+
+ 			// 	const table2 = document.getElementById("tbl-inven");
+ 			// 	const rows2 = table2.querySelectorAll("tbody tr");
+
+ 			// 	const data2 = [];
+ 			// 	rows2.forEach(row => {
+ 			// 		const cells = row.querySelectorAll("td");
+ 			// 		// Pastikan urutan sesuai dengan isi tabel Anda
+ 			// 		const checked = cells[0]?.querySelector("input")?.checked;
+ 			// 		const recid = cells[0]?.querySelector("input")?.value;
+ 			// 		const nama_inven = cells[0]?.innerText.trim();
+ 			// 		const jumlah = cells[1]?.querySelector("input")?.value;
+
+ 			// 		data2.push({
+ 			// 			checked: checked ? 1 : 0,
+ 			// 			recid: recid,
+ 			// 			nama_inven: nama_inven,
+ 			// 			jumlah: jumlah,
+ 			// 		});
+ 			// 	});
+ 			// 	const isPpnChecked = document.getElementById("use_ppn").checked;
+ 			// 	const isfree_ongkirChecked = document.getElementById("free_ongkir").checked;
+ 			// 	const isgunakan_tagihanChecked = document.getElementById("gunakan_tagihan").checked;
+ 			// 	const isuse_inventarisChecked = document.getElementById("use_inventaris").checked;
+ 			// 	const detailTambahan = {
+ 			// 		useppn: isPpnChecked ? 1 : 0,
+ 			// 		ppn: $("#ppn_amount").val().replace(/[^0-9]/g, ''),
+ 			// 		freeOngkir: isfree_ongkirChecked ? 1 : 0,
+ 			// 		ongkir: $("#ongkirNumber").val(),
+ 			// 		tgl_transaksi: $("#tgl_transaksi").val(),
+ 			// 		estimasi: $("#estimasi_sampai").val(),
+ 			// 		bayarDimuka: isgunakan_tagihanChecked ? 1 : 0,
+ 			// 		jatuh_tempo: $("#jatuh_tempo").val(),
+ 			// 		use_inventaris: isuse_inventarisChecked ? 1 : 0,
+ 			// 		client_select: $("#client_select").val(),
+ 			// 		produksi_select: $("#produksi_select").val(),
+ 			// 		total_semua: $("#total_bayar").val().replace(/[^0-9]/g, ''),
+ 			// 	}
+
+
+ 			// 	const payload = {
+ 			// 		tgl: detailTambahan.tgl_transaksi,
+ 			// 		no_invoice: $("#jatuh_tempo").val(),
+ 			// 		harga:
+
+ 			// 			dataInventaris: data2.filter(obj => obj.checked === 1),
+ 			// 		detail: detailTambahan
+
+ 			// 	};
+ 			// 	console.log(payload)
+ 			// 	fetch("fungsi/tambah/tambah.php?jual=tambah", {
+ 			// 			method: "POST",
+ 			// 			headers: {
+ 			// 				"Content-Type": "application/json"
+ 			// 			},
+ 			// 			body: JSON.stringify(payload)
+ 			// 		})
+ 			// 		.then(res => res.text())
+ 			// 		.then(result => {
+ 			// 			alert("Data berhasil dikirim!");
+ 			// 			console.log(result);
+ 			// 		})
+ 			// 		.catch(error => {
+ 			// 			console.error("Gagal:", error);
+ 			// 		});
+
+ 			// });
  		});
 
  		//To select country name
