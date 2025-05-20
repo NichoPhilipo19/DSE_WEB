@@ -364,7 +364,7 @@
  				var formatRupiahConvert = formatRupiah(hargaTotal.toString());
 
  				var newRow = `
-					<tr data-id="${id}">
+					<tr data-id="${recid}">
 						<td class="no"></td>
 						<td>
 						${nama}
@@ -400,7 +400,7 @@
  				var id = $row.data('id');
 
  				// Tampilkan kembali baris di table1
- 				$('#table1 tbody tr[data-id="' + id + '"]').show();
+ 				$('#table1 tbody tr[data-recid="' + id + '"]').show();
 
  				$row.remove();
 
@@ -505,9 +505,6 @@
  				}
  			}
 
- 			// Trigger update setiap kali jumlah berubah atau produk ditambah
- 			$('#table2').on('input', 'input[name="jumlah[]"]', loadPreviewBahanBaku);
-
  			$('#use_ppn, #free_ongkir').on('change input', updateFinalTotal);
  			$('#ongkir').on('input', function() {
  				let raw = $(this).val().replace(/[^0-9]/g, ''); // Ambil angka mentah
@@ -515,6 +512,7 @@
  				$(this).val(formatRupiah(raw)); // Tampilkan format Rupiah
  				updateFinalTotal();
  			});
+
  			// Toggle inventaris
  			$('#use_inventaris').on('change', function() {
  				$('#inventaris_options').toggle(this.checked);

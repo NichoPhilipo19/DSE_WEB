@@ -3,9 +3,10 @@
 session_start();
 if (!empty($_SESSION['admin'])) {
     require '../../config.php';
+    header('Content-Type: application/json');
 
-    if (!empty($_GET['aksi']) && $_GET['aksi'] == 'jual') {
-        $product_id = $_GET['product_id'];
+    if (!empty($_GET['aksi']) && $_GET['aksi'] == 'jual_batch') {
+        $product_id = intval($_GET['product_id']);
         $qty = floatval($_GET['qty']);
 
         // Ambil bahan baku dan kebutuhan per ton
@@ -19,6 +20,7 @@ if (!empty($_SESSION['admin'])) {
 
         $data = [];
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            var_dump($row);
             $totalKebutuhan = $row['qty_per_ton'] * $qty;
 
             $data[] = [
