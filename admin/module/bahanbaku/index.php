@@ -93,7 +93,7 @@
                                         <a href="index.php?page=bahanbaku/edit&bahanbaku=<?php echo $isi['recid']; ?>"><button
                                                 class="btn btn-warning btn-xs">Edit</button></a>
                                         <a href="fungsi/hapus/hapus.php?bahanbaku=hapus&id=<?php echo $isi['recid']; ?>"
-                                            onclick="javascript:return confirm('Hapus Data barang ?');"><button
+                                            onclick="javascript:return confirm('Hapus Data Bahan baku ?');"><button
                                                 class="btn btn-danger btn-xs">Hapus</button></a>
                                     <?php } ?>
                                 </td>
@@ -139,7 +139,7 @@
                                             name="desc"></td>
                                 </tr>
                                 <tr>
-                                    <td>Satuan Barang</td>
+                                    <td>Satuan / UOM</td>
                                     <td>
                                         <select name="satuan" class="form-control" required>
                                             <option value="#">Pilih Satuan</option>

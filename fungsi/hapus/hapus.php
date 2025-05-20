@@ -17,7 +17,7 @@ if (!empty($_SESSION['admin'])) {
         if (count($cekValidasi) > 0) {
             // Ada data yang dikembalikan
             echo "<script>
-                    alert('tidak bisa di hapus, Bahan baku di gunakan pada formulasi');
+                    alert('tidak bisa di hapus, Bahan baku sudah di gunakan pada formulasi');
                     window.history.back();
                 </script>";
         } else {
@@ -53,15 +53,35 @@ if (!empty($_SESSION['admin'])) {
     if (!empty(htmlentities($_GET['inventaris']))) {
         $id= htmlentities($_GET['id']);
         $data[] = $id;
-        $sql = 'DELETE FROM tbl_inventaris WHERE recid=?';
+
+        $cek = "SELECT * FROM tbl_relasi_inven WHERE client_id = :id";
+        $cekHasil = $config->prepare($cek);
+        $cekHasil->execute(['id' => $id]);
+
+        $cekValidasi = $cekHasil->fetchAll(); // Ambil semua hasil query
+        // cek table formulasi
+        if (count($cekValidasi) > 0) {
+            // Ada data yang dikembalikan
+            echo "<script>
+                    alert('tidak bisa di hapus, Inventaris sudah di gunakan pada client');
+                    window.history.back();
+                </script>";
+        } else {
+
+            $sql = 'DELETE FROM tbl_inventaris WHERE recid=?';
         $row = $config -> prepare($sql);
         $row -> execute($data);
         echo '<script>window.location="../../index.php?page=inventaris&&remove=hapus-data"</script>';
+        }
     }
 
     if (!empty(htmlentities($_GET['product']))) {
         $id= htmlentities($_GET['id']);
         $data[] = $id;
+
+        $sql1 = 'DELETE FROM tbl_formulasi WHERE produk_id=?';
+        $row1 = $config->prepare($sql1);
+        $row1->execute($data);
         $sql = 'DELETE FROM tbl_product WHERE recid=?';
         $row = $config -> prepare($sql);
         $row -> execute($data);

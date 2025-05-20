@@ -4,8 +4,8 @@ session_start();
 if (!empty($_SESSION['admin'])) {
     require '../../config.php';
 
+    echo "<pre>";
     if (!empty($_GET['bahanbaku'])) {
-        echo "<pre>";
         $nama = htmlentities($_POST['nama']);
         $desc = htmlentities($_POST['desc']);
         $satuan = htmlentities($_POST['satuan']);
@@ -40,13 +40,26 @@ if (!empty($_SESSION['admin'])) {
         $data[] = $no_telp;
         $data[] = $fax;
 
-        $sql = 'INSERT INTO tbl_client (nama_client, alamat, status, email, no_telp, fax) 
-                VALUES (?, ?, ?, ?, ?, ?)';
+        $cek = "SELECT * FROM tbl_client WHERE nama_client = ?";
+        $cekHasil = $config->prepare($cek);
+        $cekHasil->execute([$nama_client]);
 
-        $row = $config->prepare($sql);
-        $row->execute($data);
+        $cekValidasi = $cekHasil->fetchAll(); // Ambil semua hasil query
+        if (count($cekValidasi) > 0) {
+            // Ada data yang dikembalikan
+            echo "<script>
+                    alert('Nama Client yang sama sudah ada');
+                    window.history.back();
+                </script>";
+        } else {
+            $sql = 'INSERT INTO tbl_client (nama_client, alamat, status, email, no_telp, fax) 
+                    VALUES (?, ?, ?, ?, ?, ?)';
 
-        echo '<script>window.location="../../index.php?page=client&success=tambah";</script>';
+            $row = $config->prepare($sql);
+            $row->execute($data);
+
+            echo '<script>window.location="../../index.php?page=client&success=tambah";</script>';
+        }
     }
 
     if (!empty($_GET['inventaris'])) {

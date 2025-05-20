@@ -56,7 +56,7 @@
                                 data-rusak="<?= $isi['jml_rusak']; ?>"
                                 data-aktif="<?= $isi['jml_active']; ?>">Edit</button>
                             <a href="fungsi/hapus/hapus.php?inventaris=hapus&id=<?= $isi['recid']; ?>"
-                                onclick="return confirm('Hapus Data barang ?');">
+                                onclick="return confirm('Hapus Data Inventaris ?');">
                                 <button class="btn btn-danger btn-xs">Hapus</button>
                             </a>
                         </td>
@@ -105,11 +105,11 @@
                         </tr>
                         <tr id="row-rusak" style="display:none;">
                             <td>Jumlah Rusak</td>
-                            <td><input type="number" class="form-control" name="jml_rusak" id="input-rusak"></td>
+                            <td><input type="number" class="form-control" name="jml_rusak" id="input-rusak" required></td>
                         </tr>
                         <tr id="row-aktif" style="display:none;">
                             <td>Jumlah Aktif</td>
-                            <td><input type="number" class="form-control" name="jml_aktif" id="input-aktif"></td>
+                            <td><input type="number" class="form-control" name="jml_aktif" id="input-aktif" required></td>
                         </tr>
                     </table>
                 </div>

@@ -63,7 +63,7 @@
                                   <a href="index.php?page=client/edit&client=<?php echo $isi['recid']; ?>"><button
                                           class="btn btn-warning btn-xs">Edit</button></a>
                                   <a href="fungsi/hapus/hapus.php?client=hapus&id=<?php echo $isi['recid']; ?>"
-                                      onclick="javascript:return confirm('Hapus Data barang ?');"><button
+                                      onclick="javascript:return confirm('Yakin ingin menghapus data terpilih?');"><button
                                           class="btn btn-danger btn-xs">Hapus</button></a>
                               </td>
                           </tr>
@@ -100,21 +100,20 @@
                               <tr>
                                   <td>Nama Client</td>
                                   <td><input type="text" placeholder="Nama Client" required class="form-control"
-                                          name="nama"></td>
+                                          name="nama" required></td>
                               </tr>
                               <tr>
                                   <td>Alamat</td>
                                   <td><input type="textarea" placeholder="Alamat" required class="form-control"
-                                          name="alamat"></td>
+                                          name="alamat" required></td>
                               </tr>
                               <tr>
                                   <td>Status</td>
                                   <td>
-                                      <select name="status" class="form-control" required>
+                                      <select id="status" name="status" class="form-control" required>
                                           <option value="#">Pilih Status</option>
                                           <option value="1">Aktif</option>
                                           <option value="0">Nonaktif</option>
-
                                       </select>
                                   </td>
                               </tr>
@@ -122,21 +121,21 @@
                                   <td>email</td>
                                   <td>
                                       <input type="email" placeholder="Email" class="form-control"
-                                          name="email" value="">
+                                          name="email" value="" required>
                                   </td>
                               </tr>
                               <tr>
                                   <td>No Telepon</td>
                                   <td>
                                       <input type="number" placeholder="No.Telp" class="form-control no-arrow"
-                                          name="notelp" value="">
+                                          name="notelp" value="" required>
                                   </td>
                               </tr>
                               <tr>
                                   <td>fax</td>
                                   <td>
                                       <input type="number" placeholder="Fax" class="form-control no-arrow"
-                                          name="fax" value="">
+                                          name="fax" value="" required>
                                   </td>
                               </tr>
                           </table>

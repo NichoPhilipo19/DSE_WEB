@@ -57,7 +57,7 @@
                                 data-level="<?= $isi['level']; ?>"
                                 data-harga="<?= $isi['hargaPerTon']; ?>">Edit</button>
                             <a href="fungsi/hapus/hapus.php?product=hapus&id=<?= $isi['recid']; ?>"
-                                onclick="return confirm('Hapus Data produk?');">
+                                onclick="return confirm('Hapus Data Produk?');">
                                 <button class="btn btn-danger btn-xs">Hapus</button>
                             </a>
                         </td>
@@ -163,8 +163,9 @@
                 $('#btn-submit').html('<i class="fa fa-save"></i> Update Data');
                 var harga = $(this).data('harga').toString();
                 // alert(harga, formatRupiah(harga));
+
                 $('#input-id').val($(this).data('id'));
-                $('#input-nama').val($(this).data('nama'));
+                $('#input-nama').val($(this).data('nama')).prop('readonly', true);
                 $('#input-desc').val($(this).data('desc'));
                 $('#input-grade').val($(this).data('grade'));
                 $('#input-level').val($(this).data('level'));
@@ -176,6 +177,7 @@
                 $('#btn-submit').html('<i class="fa fa-plus"></i> Insert Data');
                 $('#form-produk')[0].reset();
                 $('#input-id').val('');
+                $('#input-nama').val("").prop('readonly', false);
             }
         });
         $('#input-harga-format').on('input', function() {

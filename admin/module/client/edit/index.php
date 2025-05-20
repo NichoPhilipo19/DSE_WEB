@@ -29,26 +29,26 @@
 					<td>ID Barang</td> 
 					<td>-->
  				<input type="hidden" readonly="readonly" class="form-control" value="<?php echo $hasil['recid']; ?>"
- 					name="recid">
+ 					name="recid" required>
  				<!-- 	</td>
 					</tr> -->
 
  				<tr>
  					<td>Nama Client</td>
  					<td><input type="text" class="form-control" value="<?php echo $hasil['nama_client']; ?>"
- 							name="nama">
+ 							name="nama" readonly>
  					</td>
  				</tr>
  				<tr>
  					<td>Alamat</td>
  					<td><input type="textarea" class="form-control" value="<?php echo $hasil['alamat']; ?>"
- 							name="alamat">
+ 							name="alamat" required>
  					</td>
  				</tr>
  				<tr>
  					<td>Status</td>
  					<td>
- 						<select name="status" class="form-control" required>
+ 						<select id="status" name="status" class="form-control" required>
  							<option value="<?php echo $hasil['status']; ?>">
  								<?php
 									if ($hasil['status'] == 1) {
@@ -69,21 +69,21 @@
  					<td>email</td>
  					<td>
  						<input type="email" placeholder="Email" class="form-control"
- 							name="email" value="<?php echo $hasil['email']; ?>">
+ 							name="email" value="<?php echo $hasil['email']; ?>" required>
  					</td>
  				</tr>
  				<tr>
  					<td>No Telepon</td>
  					<td>
  						<input type="number" placeholder="No.Telp" class="form-control no-arrow"
- 							name="notelp" value="<?php echo $hasil['no_telp']; ?>">
+ 							name="notelp" value="<?php echo $hasil['no_telp']; ?>" required>
  					</td>
  				</tr>
  				<tr>
  					<td>fax</td>
  					<td>
  						<input type="number" placeholder="Fax" class="form-control no-arrow"
- 							name="fax" value="<?php echo $hasil['fax']; ?>">
+ 							name="fax" value="<?php echo $hasil['fax']; ?>" required>
  					</td>
  				</tr>
  				<tr>
@@ -94,4 +94,3 @@
  		</table>
  	</div>
  </div>
- 

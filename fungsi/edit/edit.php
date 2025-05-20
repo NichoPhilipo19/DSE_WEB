@@ -27,6 +27,7 @@ if (!empty($_SESSION['admin'])) {
 
     if (!empty($_GET['client'])) {
         $recid         = htmlentities($_POST['recid']);
+        $nama_lama   = htmlentities($_POST['nama_lama']);
         $nama_client   = htmlentities($_POST['nama']);
         $alamat        = htmlentities($_POST['alamat']);
         $status        = intval(htmlentities($_POST['status']));
@@ -41,6 +42,8 @@ if (!empty($_SESSION['admin'])) {
         $data[] = $no_telp;
         $data[] = $fax;
         $data[] = $recid;
+
+
 
         $sql = 'UPDATE tbl_client SET nama_client=?, alamat=?, status=?, email=?, no_telp=?, fax=? where recid=?';
         $row = $config->prepare($sql);
