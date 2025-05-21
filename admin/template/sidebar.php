@@ -40,7 +40,7 @@ $hasil_profil = $lihat->member_edit($id);
         <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
             <div class="bg-white py-2 collapse-inner rounded">
                 <!-- <h6 class="collapse-header">Custom Components:</h6> -->
-                <a class="collapse-item" href="index.php?page=debug">debug</a>
+                <!-- <a class="collapse-item" href="index.php?page=debug">debug</a> -->
                 <a class="collapse-item" href="index.php?page=bahanbaku">Bahan Baku</a>
                 <a class="collapse-item" href="index.php?page=client">Client</a>
                 <a class="collapse-item" href="index.php?page=inventaris">Inventaris</a>
@@ -66,6 +66,7 @@ $hasil_profil = $lihat->member_edit($id);
                 <!-- <h6 class="collapse-header">Custom Components:</h6> -->
                 <a class="collapse-item" href="index.php?page=transaksi_bahan_baku">Transaksi Bahan Baku</a>
                 <a class="collapse-item" href="index.php?page=jual">Transaksi Jual</a>
+                <a class="collapse-item" href="index.php?page=penjualan">Data Transaksi Penjualan</a>
                 <a class="collapse-item" href="index.php?page=laporan">Laporan Penjualan</a>
             </div>
         </div>

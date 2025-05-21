@@ -4,7 +4,7 @@ $transaksi = $lihat->transaksi_bahanbaku_list();
 $bahanbaku = $lihat->bahanbaku();
 ?>
 <h4 class="mb-4">Transaksi Bahan Baku</h4>
-<?php if (isset($_GET['success']) && $_GET['succes'] == "tambah") { ?>
+<?php if (isset($_GET['success']) && $_GET['success'] == "tambah") { ?>
     <div class="alert alert-success">
         <p>Tambah Draft Berhasil !</p>
     </div>
@@ -52,7 +52,7 @@ $bahanbaku = $lihat->bahanbaku();
                     <th>Nama Bahan Baku</th>
                     <th>Qty</th>
                     <th>UOM</th>
-                    <th>Harga</th>
+                    <!-- <th>Harga</th> -->
                     <th>Status</th>
                     <th><small>Bukti<br>Pembayaran</small></th>
                     <th>Jumlah Pembayaran</th>
@@ -64,7 +64,7 @@ $bahanbaku = $lihat->bahanbaku();
             <tbody>
                 <?php foreach ($transaksi as $row): ?>
                     <tr>
-                        <td><?= date('Y/m/d', strtotime($row['tgl'])) ?></td>
+                        <td><?= date('d-m-Y', strtotime($row['tgl'])) ?></td>
                         <td><?= $row['no_po'] ?></td>
                         <td>
                             <?php if (!empty($row['no_po']) && empty($row['no_invoice'])) { ?>
@@ -80,7 +80,7 @@ $bahanbaku = $lihat->bahanbaku();
                         <td><?= $row['nama_bb'] ?></td>
                         <td><?= $row['qty'] ?></td>
                         <td><?= $row['uom'] ?></td>
-                        <td>Rp <?= number_format($row['harga'], 0, ',', '.') ?></td>
+                        <!-- <td>Rp <?= number_format($row['harga'], 0, ',', '.') ?></td> -->
                         <td>
                             <?php if ($row['status'] == 0) { ?>
                                 Draft
@@ -92,7 +92,8 @@ $bahanbaku = $lihat->bahanbaku();
                         </td>
                         <td>
                             <?php if (!empty($row['bukti_file'])): ?>
-                                <a href="assets/bukti_bayar/<?= $row['bukti_file'] ?>" target="_blank">
+                                <a href="../../assets/bukti_bayar_po/<?= $row['bukti_file'] ?>" target="_blank">
+                                    <!-- <a href="../../assets/bukti_bayar_po/<?= $row['bukti_file'] ?>" target="_blank"> -->
                                     Lihat File
                                 </a>
                             <?php else: ?>
@@ -274,7 +275,7 @@ $bahanbaku = $lihat->bahanbaku();
 <!-- Modal Bukti Pembayaran -->
 <div class="modal fade" id="modalBuktiBayar" tabindex="-1" role="dialog" aria-labelledby="modalBuktiBayarLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
-        <form action="fungsi/edit/edit.php?bukti_bayar=submit" method="POST" enctype="multipart/form-data">
+        <form action="fungsi/edit/edit.php?bukti_bayar_po=submit" method="POST" enctype="multipart/form-data">
             <div class="modal-content">
                 <div class="modal-header bg-info text-white">
                     <h5 class="modal-title">Upload Bukti Pembayaran</h5>
@@ -299,7 +300,8 @@ $bahanbaku = $lihat->bahanbaku();
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="submit" class="btn btn-success">Submit</button>
+                    <button type="submit" class="btn btn-success" onclick="this.disabled=true; this.innerText='Submitting...'; this.form.submit();">Submit</button>
+
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
                 </div>
             </div>

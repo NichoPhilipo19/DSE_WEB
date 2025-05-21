@@ -263,7 +263,7 @@ if (!empty($_SESSION['admin'])) {
         echo "<pre>";
         $input = json_decode(file_get_contents("php://input"), true);
 
-        //         // var_dump($input);
+        var_dump($input);
 
         //         // Konversi format tanggal dari "19 May 2025, 17:27" ke "2025-05-19"
         //         $tgl = date('Y-m-d', strtotime($input['tgl']));
@@ -351,17 +351,17 @@ if (!empty($_SESSION['admin'])) {
         ];
 
         $sql = "INSERT INTO transaksi_keluar (
-    tgl, no_invoice, harga, ppn, qty, total_harga,
+    tgl, no_invoice, hargaPerTon, ppn, qty, total_harga,
     pengiriman, ongkir, penanggung_ongkir, tanggal_sampai, tgl_jatuh_tempo,
     status_pembayaran, sisa_pembayaran, sudah_diterima, pakai_inventaris,
     inven_id, jml_inven, client_id, product_id, tgl_produksi,
-    tmpt_produksi_id, status_produksi, createdby, modifiedby
+    tmpt_produksi_id, createdby, modifiedby
 ) VALUES (
     :tgl, :no_invoice, :harga, :ppn, :qty, :total_harga,
     :pengiriman, :ongkir, :penanggung_ongkir, :tanggal_sampai, :tgl_jatuh_tempo,
     :status_pembayaran, :sisa_pembayaran, :sudah_diterima, :pakai_inventaris,
     :inven_id, :jml_inven, :client_id, :product_id, :tgl_produksi,
-    :tmpt_produksi_id, :status_produksi, :createdby, :modifiedby
+    :tmpt_produksi_id, :createdby, :modifiedby
 )";
 
         $row = $config->prepare($sql);

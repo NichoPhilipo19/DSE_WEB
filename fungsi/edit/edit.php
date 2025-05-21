@@ -331,17 +331,22 @@ if (!empty($_SESSION['admin'])) {
         }
     }
 
-    if (isset($_GET['bukti_bayar']) && $_GET['bukti_bayar'] === 'submit') {
+    if (isset($_GET['bukti_bayar_po']) && $_GET['bukti_bayar_po'] === 'submit') {
         $recid        = $_POST['recid'];
         $tgl_bayar    = $_POST['tgl_bayar'];
         $jumlah_bayar = preg_replace('/[^\d]/', '', $_POST['jumlah_bayar']); // hilangkan format titik/koma
         $jumlah_bayar_fix = intval($jumlah_bayar);
 
 
-        $upload_dir = '../../assets/bukti_bayar/';
-        $filename   = basename($_FILES['bukti_file']['name']);
-        $target     = $upload_dir . $filename;
-        $filetype   = strtolower(pathinfo($target, PATHINFO_EXTENSION));
+        $upload_dir = '../../assets/bukti_bayar_po/';
+
+        $tgl_bayar_formatted = date('Ymd', strtotime($tgl_bayar)); // Format: 20240520
+        $original_filename = pathinfo($_FILES['bukti_file']['name'], PATHINFO_FILENAME); // tanpa ekstensi
+        $filetype = strtolower(pathinfo($_FILES['bukti_file']['name'], PATHINFO_EXTENSION));
+
+        // Buat nama file baru dengan tgl_bayar + nama asli
+        $filename = $tgl_bayar_formatted . '_' . preg_replace('/[^a-zA-Z0-9_-]/', '_', $original_filename) . '.' . $filetype;
+        $target = $upload_dir . $filename;
 
         // Validasi file
         $allowed = ['jpg', 'jpeg', 'png', 'pdf'];
@@ -420,6 +425,82 @@ if (!empty($_SESSION['admin'])) {
             }
         }
     }
+
+    if (isset($_GET['transaksi_penjualan']) && $_GET['transaksi_penjualan'] == 'add_po') {
+        $recid = htmlentities($_POST['recid']);
+        $no_po = htmlentities($_POST['no_invoice']);
+
+        try {
+            $sql = "UPDATE transaksi_keluar SET no_po = ? WHERE recid = ?";
+            $stmt = $config->prepare($sql);
+            $stmt->execute([$no_po, $recid]);
+
+            echo '<script>window.location="../../index.php?page=penjualan&success=invoice";</script>';
+        } catch (PDOException $e) {
+            echo "Error: " . $e->getMessage();
+        }
+    }
+
+    if (isset($_GET['bukti_bayar_inv']) && $_GET['bukti_bayar_inv'] === 'submit') {
+
+        $recid        = $_POST['recid'];
+        $tgl_bayar    = $_POST['tgl_bayar'];
+        $namaclient    = str_replace(' ', '_', $_POST['namaclient']);
+        $jumlah_bayar = preg_replace('/[^\d]/', '', $_POST['jumlah_bayar']); // hilangkan format titik/koma
+        $jumlah_bayar_fix = intval($jumlah_bayar);
+
+
+        $upload_dir = '../../assets/bukti_bayar_inv/';
+
+
+        $tgl_bayar_formatted = date('Ymd', strtotime($tgl_bayar)); // Format: 20240520
+        $original_filename = pathinfo($_FILES['bukti_file']['name'], PATHINFO_FILENAME); // tanpa ekstensi
+        $filetype = strtolower(pathinfo($_FILES['bukti_file']['name'], PATHINFO_EXTENSION));
+
+        // Buat nama file baru dengan tgl_bayar + nama asli
+        $filename = $namaclient . '_' . $tgl_bayar_formatted . '_' . preg_replace('/[^a-zA-Z0-9_-]/', '_', $original_filename) . '.' . $filetype;
+        $target = $upload_dir . $filename;
+
+        // Validasi file
+        $allowed = ['jpg', 'jpeg', 'png', 'pdf'];
+        if (!in_array($filetype, $allowed)) {
+            echo "<script>alert('Format file tidak didukung.'); window.history.back();</script>";
+            exit;
+        }
+
+        if (move_uploaded_file($_FILES['bukti_file']['tmp_name'], $target)) {
+            try {
+                $sql = "UPDATE transaksi_keluar 
+                        SET tgl_byr = ?, jumlah_bayar = ?, buktibayar = ?, status_pembayaran = 1
+                        WHERE recid = ?";
+                $stmt = $config->prepare($sql);
+                $stmt->execute([$tgl_bayar, $jumlah_bayar_fix, $filename, $recid]);
+                // print_r([$tgl_bayar, $jumlah_bayar_fix, $filename, $recid]);
+                header("Location: ../../index.php?page=penjualan&success=bukti");
+                exit;
+            } catch (PDOException $e) {
+                echo "Error: " . $e->getMessage();
+            }
+        } else {
+            echo "<script>alert('Upload gagal. " . $namaclient . "'); window.history.back();</script>";
+        }
+    }
+
+    if (isset($_GET['transaksi_keluar']) && $_GET['transaksi_keluar'] === 'terima') {
+
+        $id             = htmlentities($_POST['id']);
+
+        $sql = "UPDATE transaksi_keluar
+                SET sudah_diterima = 1 WHERE recid = ?";
+
+        $stmt = $config->prepare($sql);
+        $exec = $stmt->execute([$id]);
+
+        header("Location: ../../index.php?page=penjualan&success=terima");
+    }
+
+
+
 
 
 

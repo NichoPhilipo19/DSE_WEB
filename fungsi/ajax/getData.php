@@ -20,7 +20,7 @@ if (!empty($_SESSION['admin'])) {
 
         $data = [];
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            var_dump($row);
+            // var_dump($row);
             $totalKebutuhan = $row['qty_per_ton'] * $qty;
 
             $data[] = [

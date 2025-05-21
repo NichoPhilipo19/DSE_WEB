@@ -7,6 +7,7 @@
  <?php
 	$id = $_SESSION['admin']['username'];
 	$numbeq = $lihat->numberSequenceForTransaksi();
+	$dataBahanBakuUntukFormulasi = $lihat->dataBahanBakuUntukFormulasi();
 	?>
  <h4>Penjualan</h4>
  <input type="hidden" class="form-control" id="invoice" value="<? echo $numbeq; ?>">
@@ -219,151 +220,237 @@
  									</select>
  								</div>
  							</div>
+ 							<div class="row">
+ 								<!-- PPn -->
+ 								<div class="col-md-6">
+ 									<div class="form-check">
+ 										<input class="form-check-input" type="checkbox" id="use_sewatempat">
+ 										<label class="form-check-label" for="use_sewatempat">
+ 											Sewa Tempat Produksi
+ 										</label>
+ 									</div>
+ 									<div class="form-group mt-2">
+ 										<label for="ppn_amount">Harga Jasa Produksi</label>
+ 										<input type="text" class="form-control" id="jasa_amount" value="Rp 0">
+ 										<input type="hidden" class="form-control" id="jasa_amount_hidden" value="0">
+ 									</div>
+ 								</div>
+
+ 							</div>
  						</div>
  					</div>
- 					<br />
- 					<div id="kasirnya">
- 						<table class="table table-stripped">
+ 				</div>
+ 				<br />
+ 				<div id="kasirnya">
+ 					<table class="table table-stripped">
 
- 							<!-- aksi ke table nota -->
+ 						<!-- aksi ke table nota -->
 
- 							<tr>
- 								<td>Total Semua </td>
- 								<td><input type="text" class="form-control" name="total" id="total_bayar" value="" /></td>
+ 						<tr>
+ 							<td>Total Semua </td>
+ 							<td><input type="text" class="form-control" name="total" id="total_bayar" value="" /></td>
 
- 								</td>
- 							</tr>
- 							<!-- aksi ke table nota -->
- 							<tr>
- 								<!-- <td>
+ 							</td>
+ 						</tr>
+ 						<!-- aksi ke table nota -->
+ 						<tr>
+ 							<!-- <td>
  									<a href="print.php?nm_member=<?php echo $_SESSION['admin']['nm_member']; ?>
 									&bayar=<?php echo $bayar; ?>&kembali=<?php echo $hitung; ?>" target="_blank">
  										<button class="btn btn-secondary">
  											<i class="fa fa-print"></i> Print Untuk Bukti Pembayaran
  										</button></a>
  								</td> -->
- 								<td>
- 									<button class="btn btn-success" id="submitAllInput"><i class="fa fa-shopping-cart"></i> Cetak Invoice</button>
- 								</td>
- 							</tr>
- 						</table>
- 						<br />
- 						<br />
- 					</div>
- 				</div>
- 			</div>
- 		</div>
- 		<div class="card mt-4" id="previewBahanBakuCard" style="display: none;">
- 			<div class="card-header bg-warning text-dark">
- 				<h5><i class="fa fa-cubes"></i> Preview Kebutuhan Bahan Baku</h5>
- 			</div>
- 			<div class="card-body">
- 				<div class="table-responsive">
- 					<table class="table table-bordered" id="previewBahanBakuTable">
- 						<thead>
- 							<tr>
- 								<th>No</th>
- 								<th>Nama Bahan Baku</th>
- 								<th>Kebutuhan Total (kg)</th>
- 								<th>Stok Tersedia (kg)</th>
- 								<th>Status</th>
- 								<th>Aksi</th>
- 							</tr>
- 						</thead>
- 						<tbody>
- 							<!-- Isi otomatis oleh JS -->
- 						</tbody>
+ 							<td>
+ 								<button class="btn btn-success" id="submitAllInput"><i class="fa fa-shopping-cart"></i> Cetak Invoice</button>
+ 							</td>
+ 						</tr>
  					</table>
+ 					<br />
+ 					<br />
  				</div>
  			</div>
  		</div>
+ 	</div>
+ 	<div class="card mt-4" id="previewBahanBakuCard" style="display: none;">
+ 		<div class="card-header bg-warning text-dark">
+ 			<h5><i class="fa fa-cubes"></i> Preview Kebutuhan Bahan Baku</h5>
+ 		</div>
+ 		<div class="card-body">
+ 			<div class="table-responsive">
+ 				<table class="table table-bordered" id="previewBahanBakuTable">
+ 					<thead>
+ 						<tr>
+ 							<th>No</th>
+ 							<th>Nama Bahan Baku</th>
+ 							<th>Kebutuhan Total (kg)</th>
+ 							<th>Stok Tersedia (kg)</th>
+ 							<th>Status</th>
+ 							<th>Aksi</th>
+ 						</tr>
+ 					</thead>
+ 					<tbody>
+ 						<!-- Isi otomatis oleh JS -->
+ 					</tbody>
+ 				</table>
+ 			</div>
+ 		</div>
+ 	</div>
+ 	<div class="card mt-4" id="databahanbaku" style="display: none;">
+ 		<!-- <div class="card mt-4" id="databahanbaku"> -->
+ 		<div class="card-header bg-warning text-dark">
+ 			<h5><i class="fa fa-cubes"></i>Bahan Baku</h5>
+ 		</div>
+ 		<div class="card-body">
+ 			<div class="table-responsive">
+ 				<table class="table table-bordered" id="databahanbakuTable">
+ 					<thead>
+ 						<tr>
+ 							<th>No</th>
+ 							<th>Nama Bahan Baku</th>
+ 							<th>Satuan</th>
+ 							<th>Kebutuhan Total</th>
+ 							<th>Stok Tersedia</th>
+ 						</tr>
+ 					</thead>
+ 					<tbody>
 
+ 						<?php
+
+							$no = 1;
+							foreach ($dataBahanBakuUntukFormulasi as $isi) {
+							?>
+ 							<tr
+ 								data-id="<?= $no; ?>"
+ 								data-nama="<?= $isi['nama_bahan'] ?>"
+ 								data-kebutuhan="<?= $isi['kebutuhan'] ?>"
+ 								data-stok="<?= $isi['stok']; ?>"
+ 								data-uom="<?= $isi['uom']; ?>"
+ 								data-bahanbakuid="<?= $isi['bahanbaku_id']; ?>"
+ 								data-produkid="<?= $isi['produk_id']; ?>">
+ 								<td><?= $no; ?></td>
+ 								<td><?= $isi['nama_bahan']; ?></td>
+ 								<td><?= $isi['uom']; ?></td>
+ 								<td><?= $isi['kebutuhan']; ?></td>
+ 								<td><?= $isi['stok']; ?></td>
+ 							</tr>
+ 						<?php $no++;
+							} ?>
+ 					</tbody>
+ 				</table>
+ 			</div>
+ 		</div>
  	</div>
 
+ </div>
 
- 	<script>
- 		// AJAX call for autocomplete 
- 		$(document).ready(function() {
- 			function getValueFromTable() {
- 				let total = 0;
- 				$('#table2 tbody tr').each(function() {
- 					const jumlah = parseFloat($(this).find('input[name="jumlah[]"]').val()) || 0;
- 					let hargaStr = $(this).find('input[name="harga[]"]').val();
 
- 					// Convert "Rp 1.000.000" -> 1000000
- 					hargaStr = hargaStr.replace(/[^,\d]/g, '').replace(',', '.');
- 					const harga = parseFloat(hargaStr) || 0;
+ <script>
+ 	// AJAX call for autocomplete 
+ 	$(document).ready(function() {
 
- 					total += jumlah * harga;
- 				});
- 				return total;
+ 		function getDatabahanFormulasidanStok() {
+ 			var semuaData = [];
+
+ 			$('#databahanbakuTable tbody tr').each(function() {
+ 				var rowData = {
+ 					id: $(this).data('id'),
+ 					bahanbakuid: $(this).data('bahanbakuid'),
+ 					produkid: $(this).data('produkid'),
+ 					nama: $(this).data('nama'),
+ 					kebutuhan: $(this).data('kebutuhan'),
+ 					stok: $(this).data('stok'),
+ 					uom: $(this).data('uom')
+ 				};
+
+ 				semuaData.push(rowData);
+ 			});
+
+ 			return semuaData;
+ 		}
+
+ 		function getValueFromTable() {
+ 			let total = 0;
+ 			$('#table2 tbody tr').each(function() {
+ 				const jumlah = parseFloat($(this).find('input[name="jumlah[]"]').val()) || 0;
+ 				let hargaStr = $(this).find('input[name="harga[]"]').val();
+
+ 				// Convert "Rp 1.000.000" -> 1000000
+ 				hargaStr = hargaStr.replace(/[^,\d]/g, '').replace(',', '.');
+ 				const harga = parseFloat(hargaStr) || 0;
+
+ 				total += jumlah * harga;
+ 			});
+ 			return total;
+ 		}
+
+ 		function updateFinalTotal() {
+ 			let totalValue = getValueFromTable();
+ 			let total = parseFloat(totalValue) || 0;
+ 			let ppn = $('#use_ppn').is(':checked') ? total * 0.11 : 0;
+ 			let ongkir = $('#free_ongkir').is(':checked') ? 0 : parseFloat($('#ongkirNumber').val()) || 0;
+
+ 			$('#ppn_amount').val(formatRupiah(ppn.toString()));
+
+ 			let grandTotal = total + ppn + ongkir;
+ 			// Bisa tampilkan di elemen tambahan jika perlu
+ 			console.log("Total Akhir:", grandTotal);
+ 			setTimeout($('#total_bayar').val(formatRupiah(grandTotal.toString())), 1000)
+ 		}
+
+ 		function updateTable2Numbering() {
+ 			$('#table2 tbody tr').each(function(index) {
+ 				$(this).find('td.no').text(index + 1);
+ 			});
+ 		}
+
+ 		function updateTotalBayar() {
+ 			let total = getValueFromTable();
+
+ 			$('#total_bayar').val(formatRupiah(total.toString()));
+
+ 			// $('#total_bayar').val(total.toFixed(2));
+ 		}
+
+
+ 		function formatRupiah(angka) {
+ 			var number_string = angka.replace(/[^,\d]/g, '').toString(),
+ 				split = number_string.split(','),
+ 				sisa = split[0].length % 3,
+ 				rupiah = split[0].substr(0, sisa),
+ 				ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+
+ 			if (ribuan) {
+ 				let separator = sisa ? '.' : '';
+ 				rupiah += separator + ribuan.join('.');
  			}
 
- 			function updateFinalTotal() {
- 				let totalValue = getValueFromTable();
- 				let total = parseFloat(totalValue) || 0;
- 				let ppn = $('#use_ppn').is(':checked') ? total * 0.11 : 0;
- 				let ongkir = $('#free_ongkir').is(':checked') ? 0 : parseFloat($('#ongkirNumber').val()) || 0;
+ 			rupiah = split[1] !== undefined ? rupiah + ',' + split[1] : rupiah;
+ 			return 'Rp ' + rupiah;
+ 		}
 
- 				$('#ppn_amount').val(formatRupiah(ppn.toString()));
 
- 				let grandTotal = total + ppn + ongkir;
- 				// Bisa tampilkan di elemen tambahan jika perlu
- 				console.log("Total Akhir:", grandTotal);
- 				setTimeout($('#total_bayar').val(formatRupiah(grandTotal.toString())), 1000)
+ 		$('#table1').on('click', '.add-row-trigger', function() {
+ 			var $row = $(this).closest('tr');
+ 			var id = $row.data('id');
+ 			var recid = $row.data('recid');
+ 			var harga = $row.data('harga');
+
+ 			// Cek apakah data sudah ada
+ 			if ($('#table2 tbody tr[data-id="' + id + '"]').length > 0) {
+ 				alert('Data sudah ada di Table 2!');
+ 				return;
  			}
 
- 			function updateTable2Numbering() {
- 				$('#table2 tbody tr').each(function(index) {
- 					$(this).find('td.no').text(index + 1);
- 				});
- 			}
+ 			// Ambil data dari table1
+ 			var nama = $row.find('td:eq(1)').text();
+ 			var desc = $row.find('td:eq(2)').text();
+ 			var grade = $row.find('td:eq(3)').text();
+ 			var level = $row.find('td:eq(4)').text();
+ 			var hargaTotal = harga * 0.1;
+ 			var formatRupiahConvert = formatRupiah(hargaTotal.toString());
 
- 			function updateTotalBayar() {
- 				let total = getValueFromTable();
-
- 				$('#total_bayar').val(formatRupiah(total.toString()));
-
- 				// $('#total_bayar').val(total.toFixed(2));
- 			}
-
-
- 			function formatRupiah(angka) {
- 				var number_string = angka.replace(/[^,\d]/g, '').toString(),
- 					split = number_string.split(','),
- 					sisa = split[0].length % 3,
- 					rupiah = split[0].substr(0, sisa),
- 					ribuan = split[0].substr(sisa).match(/\d{3}/gi);
-
- 				if (ribuan) {
- 					let separator = sisa ? '.' : '';
- 					rupiah += separator + ribuan.join('.');
- 				}
-
- 				rupiah = split[1] !== undefined ? rupiah + ',' + split[1] : rupiah;
- 				return 'Rp ' + rupiah;
- 			}
- 			$('#table1').on('click', '.add-row-trigger', function() {
- 				var $row = $(this).closest('tr');
- 				var id = $row.data('id');
- 				var recid = $row.data('recid');
- 				var harga = $row.data('harga');
-
- 				// Cek apakah data sudah ada
- 				if ($('#table2 tbody tr[data-id="' + id + '"]').length > 0) {
- 					alert('Data sudah ada di Table 2!');
- 					return;
- 				}
-
- 				// Ambil data dari table1
- 				var nama = $row.find('td:eq(1)').text();
- 				var desc = $row.find('td:eq(2)').text();
- 				var grade = $row.find('td:eq(3)').text();
- 				var level = $row.find('td:eq(4)').text();
- 				var hargaTotal = harga * 0.1;
- 				var formatRupiahConvert = formatRupiah(hargaTotal.toString());
-
- 				var newRow = `
+ 			var newRow = `
 					<tr data-id="${recid}">
 						<td class="no"></td>
 						<td>
@@ -380,109 +467,102 @@
 					</tr>
 				`;
 
- 				$('#table2 tbody').append(newRow);
+ 			$('#table2 tbody').append(newRow);
 
- 				// Sembunyikan baris di table1
- 				$row.hide();
+ 			// Sembunyikan baris di table1
+ 			$row.hide();
 
- 				// sementara
- 				$("#daftar-produk").hide()
- 				// sementara
+ 			// sementara
+ 			$("#daftar-produk").hide()
+ 			// sementara
 
- 				updateTable2Numbering();
- 				updateTotalBayar();
- 				setTimeout(loadPreviewBahanBaku, 300); // delay agar row sempat masuk
- 			});
+ 			updateTable2Numbering();
+ 			updateTotalBayar();
+ 			setTimeout(loadPreviewBahanBaku, 300); // delay agar row sempat masuk
+ 		});
 
- 			// Hapus baris dari table2
- 			$('#table2').on('click', '.remove-row-trigger', function() {
- 				var $row = $(this).closest('tr');
- 				var id = $row.data('id');
+ 		// Hapus baris dari table2
+ 		$('#table2').on('click', '.remove-row-trigger', function() {
+ 			var $row = $(this).closest('tr');
+ 			var id = $row.data('id');
 
- 				// Tampilkan kembali baris di table1
- 				$('#table1 tbody tr[data-recid="' + id + '"]').show();
+ 			// Tampilkan kembali baris di table1
+ 			$('#table1 tbody tr[data-recid="' + id + '"]').show();
 
- 				$row.remove();
+ 			$row.remove();
 
- 				// sementara
- 				$("#daftar-produk").show()
- 				// sementara
+ 			// sementara
+ 			$("#daftar-produk").show()
+ 			// sementara
 
- 				updateTable2Numbering();
- 				loadPreviewBahanBaku();
- 			});
- 			$('#table2').on('input', 'input[name="jumlah[]"]', function() {
- 				var $row = $(this).closest('tr');
- 				var jumlah = parseFloat($(this).val()) || 0;
+ 			updateTable2Numbering();
+ 			loadPreviewBahanBaku();
+ 		});
+ 		$('#table2').on('input', 'input[name="jumlah[]"]', function() {
+ 			var $row = $(this).closest('tr');
+ 			var jumlah = parseFloat($(this).val()) || 0;
 
- 				// Ambil nilai dari input harga yang ada di baris ini
- 				var hargaStr = $row.find('input[name="harga[]"]').val();
- 				var harga = parseFloat(hargaStr.replace(/[^,\d]/g, '').replace(',', '.')) || 0;
+ 			// Ambil nilai dari input harga yang ada di baris ini
+ 			var hargaStr = $row.find('input[name="harga[]"]').val();
+ 			var harga = parseFloat(hargaStr.replace(/[^,\d]/g, '').replace(',', '.')) || 0;
 
- 				// Hitung total harga
- 				var total = jumlah * harga;
+ 			// Hitung total harga
+ 			var total = jumlah * harga;
 
- 				// Update kolom harga total di baris ini
- 				$row.find('input[name="hargaTotal[]"]').val(formatRupiah(total.toString()));
- 				$row.find('input[name="hargaTotalFix[]"]').val(total);
+ 			// Update kolom harga total di baris ini
+ 			$row.find('input[name="hargaTotal[]"]').val(formatRupiah(total.toString()));
+ 			$row.find('input[name="hargaTotalFix[]"]').val(total);
 
- 				// Update total seluruh tabel
- 				updateTotalBayar();
- 				setTimeout(loadPreviewBahanBaku, 300);
- 			});
+ 			// Update total seluruh tabel
+ 			updateTotalBayar();
+ 			setTimeout(loadPreviewBahanBaku, 300);
+ 		});
 
 
- 			function loadPreviewBahanBaku() {
- 				const kebutuhan = {};
- 				console.log("Mulai loadPreviewBahanBaku");
+ 		function loadPreviewBahanBaku() {
+ 			const kebutuhan = {};
+ 			console.log("Mulai loadPreviewBahanBaku");
 
- 				$('#table2 tbody tr').each(function() {
- 					const idProduct = $(this).data('id');
- 					const qtyInput = $(this).find('td:eq(2) input');
- 					const qty = parseFloat(qtyInput.val()) || 0;
+ 			$('#table2 tbody tr').each(function() {
+ 				const idProduct = $(this).data('id');
+ 				const qtyInput = $(this).find('td:eq(2) input');
+ 				const qty = parseFloat(qtyInput.val()) || 0;
 
- 					console.log("Fetching untuk", idProduct, "qty:", qty);
+ 				console.log("Fetching untuk", idProduct, "qty:", qty);
 
- 					$.ajax({
- 						url: `fungsi/ajax/getData.php?aksi=jual&product_id=${idProduct}&qty=${qty}`,
- 						method: 'GET',
- 						dataType: 'json',
- 						async: false,
- 						success: function(data) {
- 							console.log("Response dari server:", data);
- 							data.forEach(item => {
- 								if (!kebutuhan[item.nama_bahan]) {
- 									kebutuhan[item.nama_bahan] = {
- 										total_kebutuhan: 0,
- 										stok: item.stok,
- 										recid: item.recid
- 									};
- 								}
- 								kebutuhan[item.nama_bahan].total_kebutuhan += parseFloat(item.kebutuhan);
- 							});
- 						},
- 						error: function(xhr) {
- 							console.error("AJAX error:", xhr.responseText);
+ 				// const kebutuhan = []
+ 				const dataBahanBakuDanStok = getDatabahanFormulasidanStok();
+ 				const loop = dataBahanBakuDanStok.forEach(item => {
+ 					if (item.produkid === parseInt(idProduct)) {
+ 						if (!kebutuhan[item.nama]) {
+ 							kebutuhan[item.nama] = {
+ 								total_kebutuhan: 0,
+ 								stok: item.stok,
+ 								recid: item.bahanbakuid
+ 							};
  						}
- 					});
+ 						kebutuhan[item.nama].total_kebutuhan += parseFloat(item.kebutuhan * qty);
+ 					}
  				});
 
- 				console.log("HASIL kebutuhan:", kebutuhan);
+ 			});
 
- 				// Lanjut render seperti biasa...
- 				const $tbody = $('#previewBahanBakuTable tbody');
- 				$tbody.empty();
+ 			console.log("HASIL kebutuhan:", kebutuhan);
 
- 				let no = 1;
- 				let adaKekurangan = false;
+ 			// Lanjut render seperti biasa...
+ 			const $tbody = $('#previewBahanBakuTable tbody');
+ 			$tbody.empty();
 
- 				for (const nama in kebutuhan) {
- 					const total = kebutuhan[nama].total_kebutuhan;
- 					const stok = kebutuhan[nama].stok;
- 					const recid = kebutuhan[nama].recid;
- 					const kurang = stok < total;
- 					const status = kurang ? 'Stok Kurang' : 'Cukup';
- 					var newRow = `<tr>
+ 			let no = 1;
+ 			let adaKekurangan = false;
+
+ 			for (const nama in kebutuhan) {
+ 				const total = kebutuhan[nama].total_kebutuhan;
+ 				const stok = kebutuhan[nama].stok;
+ 				const recid = kebutuhan[nama].recid;
+ 				const kurang = stok < total;
+ 				const status = kurang ? 'Stok Kurang' : 'Cukup';
+ 				var newRow = `<tr>
 						<td>${no++}</td>
 						<td>${nama}</td>
 						<td>${total}</td>
@@ -493,244 +573,307 @@
 							
 						</td>
 					</tr>`
- 					console.log(newRow, 'newRow')
- 					$tbody.append(newRow);
- 					if (kurang) adaKekurangan = true;
- 				}
-
- 				if (no > 1) {
- 					$('#previewBahanBakuCard').show();
- 				} else {
- 					$('#previewBahanBakuCard').hide();
- 				}
+ 				console.log(newRow, 'newRow')
+ 				$tbody.append(newRow);
+ 				if (kurang) adaKekurangan = true;
  			}
 
- 			$('#use_ppn, #free_ongkir').on('change input', updateFinalTotal);
- 			$('#ongkir').on('input', function() {
- 				let raw = $(this).val().replace(/[^0-9]/g, ''); // Ambil angka mentah
- 				$('#ongkirNumber').val(raw); // Simpan ke hidden input
- 				$(this).val(formatRupiah(raw)); // Tampilkan format Rupiah
- 				updateFinalTotal();
- 			});
+ 			if (no > 1) {
+ 				$('#previewBahanBakuCard').show();
+ 			} else {
+ 				$('#previewBahanBakuCard').hide();
+ 			}
+ 		}
 
- 			// Toggle inventaris
- 			$('#use_inventaris').on('change', function() {
- 				$('#inventaris_options').toggle(this.checked);
- 			});
-
- 			// sementara
- 			$('input[name="inventaris_id[]"]').on('change', function() {
- 				// Uncheck semua checkbox
- 				$('input[name="inventaris_id[]"]').prop('checked', false);
- 				// Ceklis hanya yang diklik
- 				$(this).prop('checked', true);
- 			});
- 			// sementara
-
- 			$('#submitAllInput').on('click', function() {
-
- 				const table = document.getElementById("table2");
- 				const rows = table.querySelectorAll("tbody tr");
-
- 				let total_harga = 0;
- 				const data = [];
- 				rows.forEach(row => {
- 					const cells = row.querySelectorAll("td");
- 					// Pastikan urutan sesuai dengan isi tabel Anda
- 					const produk = cells[1]?.innerText.trim();
- 					const recid = cells[1]?.querySelector("input")?.value;
- 					const jumlah = cells[2]?.querySelector("input")?.value;
- 					const harga = cells[3]?.querySelector("input")?.value;
- 					const total = cells[4]?.querySelector("input")?.value;
- 					var totalReplace = total.replace(/[^0-9]/g, '')
- 					total_harga = total_harga + parseInt(totalReplace)
- 					data.push({
- 						recid: recid,
- 						produk: produk,
- 						jumlah: jumlah,
- 						harga: harga,
- 						total: total.replace(/[^0-9]/g, '')
- 					});
- 				});
-
- 				const table2 = document.getElementById("tbl-inven");
- 				const rows2 = table2.querySelectorAll("tbody tr");
-
- 				const data2 = [];
- 				rows2.forEach(row => {
- 					const cells = row.querySelectorAll("td");
- 					// Pastikan urutan sesuai dengan isi tabel Anda
- 					const checked = cells[0]?.querySelector("input")?.checked;
- 					const recid = cells[0]?.querySelector("input")?.value;
- 					const nama_inven = cells[0]?.innerText.trim();
- 					const jumlah = cells[1]?.querySelector("input")?.value;
-
- 					data2.push({
- 						checked: checked ? 1 : 0,
- 						recid: recid,
- 						nama_inven: nama_inven,
- 						jumlah: jumlah,
- 					});
- 				});
- 				const isPpnChecked = document.getElementById("use_ppn").checked;
- 				const isfree_ongkirChecked = document.getElementById("free_ongkir").checked;
- 				const isgunakan_tagihanChecked = document.getElementById("gunakan_tagihan").checked;
- 				const isuse_inventarisChecked = document.getElementById("use_inventaris").checked;
- 				const detailTambahan = {
- 					useppn: isPpnChecked ? 1 : 0,
- 					ppn: $("#ppn_amount").val().replace(/[^0-9]/g, ''),
- 					freeOngkir: isfree_ongkirChecked ? 1 : 0,
- 					ongkir: $("#ongkirNumber").val(),
- 					tgl_transaksi: $("#tgl_transaksi").val(),
- 					estimasi: $("#estimasi_sampai").val(),
- 					bayarDimuka: isgunakan_tagihanChecked ? 1 : 0,
- 					jatuh_tempo: $("#jatuh_tempo").val(),
- 					use_inventaris: isuse_inventarisChecked ? 1 : 0,
- 					client_select: $("#client_select").val(),
- 					produksi_select: $("#produksi_select").val(),
- 					total_semua: $("#total_bayar").val().replace(/[^0-9]/g, ''),
- 				}
-
-
- 				const payload = {
- 					tgl: detailTambahan.tgl_transaksi,
- 					no_invoice: $("#invoice").val(),
- 					harga: data[0].harga,
- 					ppn: detailTambahan.ppn,
- 					qty: data[0].jumlah,
- 					total_harga: total_harga,
- 					pengiriman: "Kurir Internal",
- 					ongkir: detailTambahan.ongkir,
- 					penanggung_ongkir: detailTambahan.freeOngkir,
- 					tanggal_sampai: detailTambahan.estimasi,
- 					tgl_jatuh_tempo: detailTambahan.jatuh_tempo,
- 					status_pembayaran: detailTambahan.bayarDimuka,
- 					sisa_pembayaran: 100,
- 					sudah_diterima: 0,
- 					pakai_inventaris: detailTambahan.use_inventaris,
- 					inven_id: data2[0].recid,
- 					jml_inven: data2[0].jumlah,
- 					client_id: detailTambahan.client_select,
- 					product_id: data[0].recid,
- 					tgl_produksi: detailTambahan.tgl_transaksi,
- 					tmpt_produksi_id: detailTambahan.produksi_select,
- 					status_produksi: 0,
- 					createdby: $("#username").val(),
- 					modifiedby: $("#username").val(),
-
- 					// dataInventaris: data2.filter(obj => obj.checked === 1),
- 					// detail: detailTambahan
-
- 				};
- 				console.log(payload)
- 				fetch("fungsi/tambah/tambah.php?jual=tambah", {
- 						method: "POST",
- 						headers: {
- 							"Content-Type": "application/json"
- 						},
- 						body: JSON.stringify(payload)
- 					})
- 					.then(res => res.text())
- 					.then(result => {
- 						alert("Data berhasil dikirim!");
- 						console.log(result);
- 					})
- 					.catch(error => {
- 						console.error("Gagal:", error);
- 					});
-
- 			});
- 			// $('#submitAllInput').on('click', function() {
-
- 			// 	const table = document.getElementById("table2");
- 			// 	const rows = table.querySelectorAll("tbody tr");
-
- 			// 	const data = [];
- 			// 	rows.forEach(row => {
- 			// 		const cells = row.querySelectorAll("td");
- 			// 		// Pastikan urutan sesuai dengan isi tabel Anda
- 			// 		const produk = cells[1]?.innerText.trim();
- 			// 		const recid = cells[1]?.querySelector("input")?.value;
- 			// 		const jumlah = cells[2]?.querySelector("input")?.value;
- 			// 		const harga = cells[3]?.querySelector("input")?.value;
- 			// 		const total = cells[4]?.querySelector("input")?.value;
-
- 			// 		data.push({
- 			// 			recid: recid,
- 			// 			produk: produk,
- 			// 			jumlah: jumlah,
- 			// 			harga: harga,
- 			// 			total: total.replace(/[^0-9]/g, '')
- 			// 		});
- 			// 	});
-
- 			// 	const table2 = document.getElementById("tbl-inven");
- 			// 	const rows2 = table2.querySelectorAll("tbody tr");
-
- 			// 	const data2 = [];
- 			// 	rows2.forEach(row => {
- 			// 		const cells = row.querySelectorAll("td");
- 			// 		// Pastikan urutan sesuai dengan isi tabel Anda
- 			// 		const checked = cells[0]?.querySelector("input")?.checked;
- 			// 		const recid = cells[0]?.querySelector("input")?.value;
- 			// 		const nama_inven = cells[0]?.innerText.trim();
- 			// 		const jumlah = cells[1]?.querySelector("input")?.value;
-
- 			// 		data2.push({
- 			// 			checked: checked ? 1 : 0,
- 			// 			recid: recid,
- 			// 			nama_inven: nama_inven,
- 			// 			jumlah: jumlah,
- 			// 		});
- 			// 	});
- 			// 	const isPpnChecked = document.getElementById("use_ppn").checked;
- 			// 	const isfree_ongkirChecked = document.getElementById("free_ongkir").checked;
- 			// 	const isgunakan_tagihanChecked = document.getElementById("gunakan_tagihan").checked;
- 			// 	const isuse_inventarisChecked = document.getElementById("use_inventaris").checked;
- 			// 	const detailTambahan = {
- 			// 		useppn: isPpnChecked ? 1 : 0,
- 			// 		ppn: $("#ppn_amount").val().replace(/[^0-9]/g, ''),
- 			// 		freeOngkir: isfree_ongkirChecked ? 1 : 0,
- 			// 		ongkir: $("#ongkirNumber").val(),
- 			// 		tgl_transaksi: $("#tgl_transaksi").val(),
- 			// 		estimasi: $("#estimasi_sampai").val(),
- 			// 		bayarDimuka: isgunakan_tagihanChecked ? 1 : 0,
- 			// 		jatuh_tempo: $("#jatuh_tempo").val(),
- 			// 		use_inventaris: isuse_inventarisChecked ? 1 : 0,
- 			// 		client_select: $("#client_select").val(),
- 			// 		produksi_select: $("#produksi_select").val(),
- 			// 		total_semua: $("#total_bayar").val().replace(/[^0-9]/g, ''),
- 			// 	}
-
-
- 			// 	const payload = {
- 			// 		tgl: detailTambahan.tgl_transaksi,
- 			// 		no_invoice: $("#jatuh_tempo").val(),
- 			// 		harga:
-
- 			// 			dataInventaris: data2.filter(obj => obj.checked === 1),
- 			// 		detail: detailTambahan
-
- 			// 	};
- 			// 	console.log(payload)
- 			// 	fetch("fungsi/tambah/tambah.php?jual=tambah", {
- 			// 			method: "POST",
- 			// 			headers: {
- 			// 				"Content-Type": "application/json"
- 			// 			},
- 			// 			body: JSON.stringify(payload)
- 			// 		})
- 			// 		.then(res => res.text())
- 			// 		.then(result => {
- 			// 			alert("Data berhasil dikirim!");
- 			// 			console.log(result);
- 			// 		})
- 			// 		.catch(error => {
- 			// 			console.error("Gagal:", error);
- 			// 		});
-
- 			// });
+ 		$('#use_ppn, #free_ongkir').on('change input', updateFinalTotal);
+ 		$('#ongkir').on('input', function() {
+ 			let raw = $(this).val().replace(/[^0-9]/g, ''); // Ambil angka mentah
+ 			$('#ongkirNumber').val(raw); // Simpan ke hidden input
+ 			$(this).val(formatRupiah(raw)); // Tampilkan format Rupiah
+ 			updateFinalTotal();
  		});
 
- 		//To select country name
- 	</script>
+ 		$('#gunakan_tagihan').on('change', function() {
+ 			if ($(this).is(':checked')) {
+ 				$('#jatuh_tempo').prop('disabled', false);
+ 			} else {
+ 				$('#jatuh_tempo').prop('disabled', true);
+ 			}
+ 		});
+
+ 		// Toggle inventaris
+ 		$('#use_inventaris').on('change', function() {
+ 			$('#inventaris_options').toggle(this.checked);
+ 		});
+
+ 		// sementara
+ 		$('#tbl-inven input[name="inventaris_id[]"]').on('change', function() {
+ 			// Uncheck semua checkbox
+ 			$('input[name="inventaris_id[]"]').prop('checked', false);
+ 			// Ceklis hanya yang diklik
+ 			$(this).prop('checked', true);
+
+ 			if ($(this).is(':checked')) {
+ 				// Saat checkbox dicentang
+ 				// Matikan semua input number
+ 				$('#tbl-inven input[type="number"]').prop('disabled', true);
+ 				// Aktifkan hanya input number di baris yang sama
+ 				$(this).closest('tr').find('input[type="number"]').prop('disabled', false);
+ 			} else {
+ 				// Kalau dicentangnya dilepas
+ 				// Cek apakah masih ada checkbox lain yang dicentang
+ 				if ($('#tbl-inven input[name="inventaris_id[]"]:checked').length === 0) {
+ 					// Tidak ada yang dicentang, aktifkan semua input number
+ 					$('#tbl-inven input[type="number"]').prop('disabled', false);
+ 				} else {
+ 					// Masih ada yang dicentang → pastikan hanya aktif input yang sesuai
+ 					$('#tbl-inven input[type="number"]').prop('disabled', true);
+ 					$('#tbl-inven input[name="inventaris_id[]"]:checked').each(function() {
+ 						$(this).closest('tr').find('input[type="number"]').prop('disabled', false);
+ 					});
+ 				}
+ 			}
+ 		});
+ 		$('#estimasi_sampai').on('change', function() {
+ 			const today = new Date();
+ 			const nextYear = new Date();
+ 			nextYear.setFullYear(today.getFullYear() + 1);
+
+ 			// Format ke yyyy-mm-dd
+ 			const formatDate = (date) => {
+ 				const y = date.getFullYear();
+ 				const m = String(date.getMonth() + 1).padStart(2, '0');
+ 				const d = String(date.getDate()).padStart(2, '0');
+ 				return `${y}-${m}-${d}`;
+ 			};
+
+ 			$('#jatuh_tempo').attr('min', formatDate(today));
+ 			$('#jatuh_tempo').attr('max', formatDate(nextYear));
+ 		});
+ 		$('#use_sewatempat').on('change', function() {
+
+ 			if ($(this).is(':checked')) {
+ 				$("#jasa_amount").prop("readonly", false)
+ 			} else {
+ 				$("#jasa_amount").val("Rp 0").prop("readonly", true)
+ 			}
+ 		});
+ 		$('#jasa_amount').on('input', function() {
+ 			let raw = $(this).val().replace(/[^0-9]/g, ''); // Ambil angka mentah
+ 			$('#jasa_amount_hidden').val(raw); // Simpan ke hidden input
+ 			$(this).val(formatRupiah(raw)); // Tampilkan format Rupiah
+ 			updateFinalTotal();
+ 		});
+ 		// $('input[name="inventaris_id[]"]').on('change', function() {
+
+ 		// });
+ 		// sementara
+
+ 		$('#submitAllInput').on('click', function() {
+
+ 			const table = document.getElementById("table2");
+ 			const rows = table.querySelectorAll("tbody tr");
+
+ 			let total_harga = 0;
+ 			const data = [];
+ 			rows.forEach(row => {
+ 				const cells = row.querySelectorAll("td");
+ 				// Pastikan urutan sesuai dengan isi tabel Anda
+ 				const produk = cells[1]?.innerText.trim();
+ 				const recid = cells[1]?.querySelector("input")?.value;
+ 				const jumlah = cells[2]?.querySelector("input")?.value;
+ 				const harga = cells[3]?.querySelector("input")?.value;
+ 				const total = cells[4]?.querySelector("input")?.value;
+ 				var totalReplace = total.replace(/[^0-9]/g, '')
+ 				total_harga = total_harga + parseInt(totalReplace)
+ 				data.push({
+ 					recid: recid,
+ 					produk: produk,
+ 					jumlah: jumlah,
+ 					harga: harga,
+ 					total: total.replace(/[^0-9]/g, '')
+ 				});
+ 			});
+
+ 			const table2 = document.getElementById("tbl-inven");
+ 			const rows2 = table2.querySelectorAll("tbody tr");
+
+ 			const data2 = [];
+ 			rows2.forEach(row => {
+ 				const cells = row.querySelectorAll("td");
+ 				// Pastikan urutan sesuai dengan isi tabel Anda
+ 				const checked = cells[0]?.querySelector("input")?.checked;
+ 				const recid = cells[0]?.querySelector("input")?.value;
+ 				const nama_inven = cells[0]?.innerText.trim();
+ 				const jumlah = cells[1]?.querySelector("input")?.value;
+
+ 				data2.push({
+ 					checked: checked ? 1 : 0,
+ 					recid: recid,
+ 					nama_inven: nama_inven,
+ 					jumlah: jumlah,
+ 				});
+ 			});
+ 			const isPpnChecked = document.getElementById("use_ppn").checked;
+ 			const isfree_ongkirChecked = document.getElementById("free_ongkir").checked;
+ 			const isgunakan_tagihanChecked = document.getElementById("gunakan_tagihan").checked;
+ 			const isuse_inventarisChecked = document.getElementById("use_inventaris").checked;
+ 			const detailTambahan = {
+ 				useppn: isPpnChecked ? 1 : 0,
+ 				ppn: $("#ppn_amount").val().replace(/[^0-9]/g, ''),
+ 				freeOngkir: isfree_ongkirChecked ? 1 : 0,
+ 				ongkir: $("#ongkirNumber").val(),
+ 				tgl_transaksi: $("#tgl_transaksi").val(),
+ 				estimasi: $("#estimasi_sampai").val(),
+ 				bayarDimuka: isgunakan_tagihanChecked ? 1 : 0,
+ 				jatuh_tempo: isgunakan_tagihanChecked ? $("#jatuh_tempo").val() : null,
+ 				use_inventaris: isuse_inventarisChecked ? 1 : 0,
+ 				client_select: $("#client_select").val(),
+ 				produksi_select: $("#produksi_select").val(),
+ 				total_semua: $("#total_bayar").val().replace(/[^0-9]/g, ''),
+ 			}
+
+
+ 			const payload = {
+ 				tgl: detailTambahan.tgl_transaksi,
+ 				no_invoice: $("#invoice").val(),
+ 				harga: data[0].harga,
+ 				ppn: detailTambahan.ppn,
+ 				qty: data[0].jumlah,
+ 				total_harga: total_harga,
+ 				pengiriman: "Kurir Internal",
+ 				ongkir: detailTambahan.ongkir,
+ 				penanggung_ongkir: detailTambahan.freeOngkir,
+ 				tanggal_sampai: detailTambahan.estimasi,
+ 				tgl_jatuh_tempo: detailTambahan.jatuh_tempo,
+ 				status_pembayaran: detailTambahan.bayarDimuka,
+ 				sisa_pembayaran: 100,
+ 				sudah_diterima: 0,
+ 				pakai_inventaris: detailTambahan.use_inventaris,
+ 				inven_id: data2[0].recid,
+ 				jml_inven: data2[0].jumlah,
+ 				client_id: detailTambahan.client_select,
+ 				product_id: data[0].recid,
+ 				tgl_produksi: detailTambahan.tgl_transaksi,
+ 				tmpt_produksi_id: detailTambahan.produksi_select,
+ 				// status_produksi: 0,
+ 				createdby: $("#username").val(),
+ 				modifiedby: $("#username").val(),
+
+ 				// dataInventaris: data2.filter(obj => obj.checked === 1),
+ 				// detail: detailTambahan
+
+ 			};
+ 			console.log(payload)
+ 			fetch("fungsi/tambah/tambah.php?jual=tambah", {
+ 					method: "POST",
+ 					headers: {
+ 						"Content-Type": "application/json"
+ 					},
+ 					body: JSON.stringify(payload)
+ 				})
+ 				.then(res => res.text())
+ 				.then(result => {
+ 					alert("Invoice Telah Di buat!");
+ 					// console.log(result);
+ 					window.location.href = 'index.php?page=penjualan';
+ 				})
+ 				.catch(error => {
+ 					console.error("Gagal:", error);
+ 				});
+
+ 		});
+ 		// $('#submitAllInput').on('click', function() {
+
+ 		// 	const table = document.getElementById("table2");
+ 		// 	const rows = table.querySelectorAll("tbody tr");
+
+ 		// 	const data = [];
+ 		// 	rows.forEach(row => {
+ 		// 		const cells = row.querySelectorAll("td");
+ 		// 		// Pastikan urutan sesuai dengan isi tabel Anda
+ 		// 		const produk = cells[1]?.innerText.trim();
+ 		// 		const recid = cells[1]?.querySelector("input")?.value;
+ 		// 		const jumlah = cells[2]?.querySelector("input")?.value;
+ 		// 		const harga = cells[3]?.querySelector("input")?.value;
+ 		// 		const total = cells[4]?.querySelector("input")?.value;
+
+ 		// 		data.push({
+ 		// 			recid: recid,
+ 		// 			produk: produk,
+ 		// 			jumlah: jumlah,
+ 		// 			harga: harga,
+ 		// 			total: total.replace(/[^0-9]/g, '')
+ 		// 		});
+ 		// 	});
+
+ 		// 	const table2 = document.getElementById("tbl-inven");
+ 		// 	const rows2 = table2.querySelectorAll("tbody tr");
+
+ 		// 	const data2 = [];
+ 		// 	rows2.forEach(row => {
+ 		// 		const cells = row.querySelectorAll("td");
+ 		// 		// Pastikan urutan sesuai dengan isi tabel Anda
+ 		// 		const checked = cells[0]?.querySelector("input")?.checked;
+ 		// 		const recid = cells[0]?.querySelector("input")?.value;
+ 		// 		const nama_inven = cells[0]?.innerText.trim();
+ 		// 		const jumlah = cells[1]?.querySelector("input")?.value;
+
+ 		// 		data2.push({
+ 		// 			checked: checked ? 1 : 0,
+ 		// 			recid: recid,
+ 		// 			nama_inven: nama_inven,
+ 		// 			jumlah: jumlah,
+ 		// 		});
+ 		// 	});
+ 		// 	const isPpnChecked = document.getElementById("use_ppn").checked;
+ 		// 	const isfree_ongkirChecked = document.getElementById("free_ongkir").checked;
+ 		// 	const isgunakan_tagihanChecked = document.getElementById("gunakan_tagihan").checked;
+ 		// 	const isuse_inventarisChecked = document.getElementById("use_inventaris").checked;
+ 		// 	const detailTambahan = {
+ 		// 		useppn: isPpnChecked ? 1 : 0,
+ 		// 		ppn: $("#ppn_amount").val().replace(/[^0-9]/g, ''),
+ 		// 		freeOngkir: isfree_ongkirChecked ? 1 : 0,
+ 		// 		ongkir: $("#ongkirNumber").val(),
+ 		// 		tgl_transaksi: $("#tgl_transaksi").val(),
+ 		// 		estimasi: $("#estimasi_sampai").val(),
+ 		// 		bayarDimuka: isgunakan_tagihanChecked ? 1 : 0,
+ 		// 		jatuh_tempo: $("#jatuh_tempo").val(),
+ 		// 		use_inventaris: isuse_inventarisChecked ? 1 : 0,
+ 		// 		client_select: $("#client_select").val(),
+ 		// 		produksi_select: $("#produksi_select").val(),
+ 		// 		total_semua: $("#total_bayar").val().replace(/[^0-9]/g, ''),
+ 		// 	}
+
+
+ 		// 	const payload = {
+ 		// 		tgl: detailTambahan.tgl_transaksi,
+ 		// 		no_invoice: $("#jatuh_tempo").val(),
+ 		// 		harga:
+
+ 		// 			dataInventaris: data2.filter(obj => obj.checked === 1),
+ 		// 		detail: detailTambahan
+
+ 		// 	};
+ 		// 	console.log(payload)
+ 		// 	fetch("fungsi/tambah/tambah.php?jual=tambah", {
+ 		// 			method: "POST",
+ 		// 			headers: {
+ 		// 				"Content-Type": "application/json"
+ 		// 			},
+ 		// 			body: JSON.stringify(payload)
+ 		// 		})
+ 		// 		.then(res => res.text())
+ 		// 		.then(result => {
+ 		// 			alert("Data berhasil dikirim!");
+ 		// 			console.log(result);
+ 		// 		})
+ 		// 		.catch(error => {
+ 		// 			console.error("Gagal:", error);
+ 		// 		});
+
+ 		// });
+ 	});
+
+ 	//To select country name
+ </script>

@@ -162,10 +162,10 @@ class view
     {
         // echo "<pre>";
         $prefix = "INV";
-        $bulan = 1;
-        $tahun = 2025;
-        // $bulan = date("m");
-        // $tahun = date("Y");
+        // $bulan = 1;
+        // $tahun = 2025;
+        $bulan = date("m");
+        $tahun = date("Y");
 
         // $sql_seq = "SELECT * FROM number_sequences WHERE prefix = ? AND bulan = ? AND tahun = ? LIMIT 1";
         // $stmt_seq = $this->db->prepare($sql_seq);
@@ -184,7 +184,7 @@ class view
             if ($hasil) {
                 $kode_perusahaan = $hasil['kode_perusahaan'] ?? '';
                 $last_number = intval($hasil['last_number']) + 1;
-                $no_inv = str_pad($last_number, 4, '0', STR_PAD_LEFT) . '/' . $prefix . '/' . $kode_perusahaan . '/' . $bulan . '/' . $tahun;
+                $no_inv = str_pad($last_number, 4, '0', STR_PAD_LEFT) . '/' . $prefix . '/' . $kode_perusahaan . '-' . $bulan . '/' . $tahun;
 
                 return $no_inv;
             } else {
@@ -229,6 +229,42 @@ class view
         return $row->fetchAll();
     }
 
+    public function dataBahanBakuUntukFormulasi()
+    {
+        // echo "<pre>";
+        $sql = "SELECT bb.recid,bb.nama_bb, bb.stok, bb.satuan, f.qty_per_ton, f.produk_id
+                FROM tbl_formulasi f
+                JOIN tbl_bahan_baku bb ON f.bahanbaku_id = bb.recid";
+
+        $stmt = $this->db->prepare($sql); // ✅ pakai $config, bukan $this
+        $stmt->execute();
+        $rows = $stmt->fetchAll();
+        $data = [];
+        foreach ($rows as $row) {
+            $data[] = [
+                'bahanbaku_id' => intval($row['recid']),
+                'produk_id' => intval($row['produk_id']),
+                'nama_bahan' => $row['nama_bb'],
+                'kebutuhan' => $row['qty_per_ton'],
+                'stok' => intval($row['stok']),
+                'uom' => $row['satuan']
+            ];
+        }
+        // var_dump($data);
+        return $data;
+    }
+
+    public function transaksi_penjualan_list()
+    {
+        $sql = "SELECT tk.*, c.nama_client 
+          FROM transaksi_keluar tk
+          LEFT JOIN tbl_client c ON tk.client_id = c.recid
+          ORDER BY tk.tgl DESC";
+        $row = $this->db->prepare($sql);
+        $row->execute();
+        $hasil = $row->fetchAll();
+        return $hasil;
+    }
 
 
 
