@@ -282,60 +282,6 @@ if (!empty($_SESSION['admin'])) {
         $input = json_decode(file_get_contents("php://input"), true);
 
         var_dump($input);
-
-        //         // Konversi format tanggal dari "19 May 2025, 17:27" ke "2025-05-19"
-        //         $tgl = date('Y-m-d', strtotime($input['tgl']));
-        //         $tgl_produksi = date('Y-m-d', strtotime($input['tgl_produksi']));
-
-        //         // Hapus "Rp" dan titik dari harga jika perlu
-        //         $harga = str_replace(['Rp', '.', ','], '', $input['harga']);
-        //         $harga = trim($harga);
-
-        //         // Data untuk binding
-        //         $data = [
-        //             $tgl,
-        //             $input['no_invoice'],
-        //             $harga,
-        //             $input['ppn'],
-        //             $input['qty'],
-        //             $input['total_harga'],
-        //             $input['pengiriman'],
-        //             $input['ongkir'],
-        //             $input['penanggung_ongkir'],
-        //             $input['tanggal_sampai'],
-        //             $input['tgl_jatuh_tempo'],
-        //             $input['status_pembayaran'],
-        //             $input['sisa_pembayaran'],
-        //             $input['sudah_diterima'],
-        //             $input['pakai_inventaris'],
-        //             $input['inven_id'],
-        //             $input['jml_inven'],
-        //             $input['client_id'],
-        //             $input['product_id'],
-        //             $tgl_produksi,
-        //             $input['tmpt_produksi_id'],
-        //             $input['status_produksi'],
-        //             $input['createdby'],
-        //             $input['modifiedby']
-        //         ];
-        //         var_dump($data);
-        //         // SQL Insert
-        //         $sql = "INSERT INTO transaksi_keluar (
-        //     tgl, no_invoice, harga, ppn, qty, total_harga,
-        //     pengiriman, ongkir, penanggung_ongkir, tanggal_sampai, tgl_jatuh_tempo,
-        //     status_pembayaran, sisa_pembayaran, sudah_diterima, pakai_inventaris,
-        //     inven_id, jml_inven, client_id, product_id, tgl_produksi,
-        //     tmpt_produksi_id, status_produksi, createdby, modifiedby
-        // ) VALUES (
-        //     ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
-        // )";
-
-        //         // Eksekusi query
-        //         $row = $config->prepare($sql);
-        //         $row->execute($data);
-
-        //         echo '<script>window.location="../../index.php?page=jual&success=tambah";</script>';
-
         // Konversi format & bersihkan input
         $tgl = date('Y-m-d', strtotime($input['tgl']));
         $tgl_produksi = date('Y-m-d', strtotime($input['tgl_produksi']));
@@ -348,6 +294,7 @@ if (!empty($_SESSION['admin'])) {
             ':ppn' => $input['ppn'],
             ':qty' => $input['qty'],
             ':total_harga' => $input['total_harga'],
+            ':profit' => $input['profit'],
             ':pengiriman' => $input['pengiriman'],
             ':ongkir' => $input['ongkir'],
             ':penanggung_ongkir' => $input['penanggung_ongkir'],
@@ -368,13 +315,13 @@ if (!empty($_SESSION['admin'])) {
         ];
 
         $sql = "INSERT INTO transaksi_keluar (
-    tgl, no_invoice, hargaPerTon, ppn, qty, total_harga,
+    tgl, no_invoice, hargaPerTon, ppn, qty, total_harga, profit,
     pengiriman, ongkir, penanggung_ongkir, tanggal_sampai, tgl_jatuh_tempo,
     status_pembayaran, sisa_pembayaran, sudah_diterima, pakai_inventaris,
     inven_id, jml_inven, client_id, product_id, tgl_produksi,
     tmpt_produksi_id, createdby, modifiedby
 ) VALUES (
-    :tgl, :no_invoice, :harga, :ppn, :qty, :total_harga,
+    :tgl, :no_invoice, :harga, :ppn, :qty, :total_harga, :profit,
     :pengiriman, :ongkir, :penanggung_ongkir, :tanggal_sampai, :tgl_jatuh_tempo,
     :status_pembayaran, :sisa_pembayaran, :sudah_diterima, :pakai_inventaris,
     :inven_id, :jml_inven, :client_id, :product_id, :tgl_produksi,
@@ -385,7 +332,20 @@ if (!empty($_SESSION['admin'])) {
         if (!$row->execute($data)) {
             print_r($row->errorInfo()); // DEBUG error
         } else {
-            // echo '<script>window.location="../../index.php?page=jual&success=tambah";</script>';
+            $bahanBaku = $input['dataBahanBaku']; // pastikan dari frontend kirim key ini
+            foreach ($bahanBaku as $item) {
+                $recid = (int)$item['recid'];
+                $totalKebutuhan = (float)$item['total_kebutuhan'];
+
+                $updateStokSQL = "UPDATE tbl_bahan_baku SET stok = stok - :kebutuhan WHERE recid = :recid";
+                $updateStokStmt = $config->prepare($updateStokSQL);
+                $updateStokStmt->execute([
+                    ':kebutuhan' => $totalKebutuhan,
+                    ':recid' => $recid
+                ]);
+            }
+
+            echo json_encode(["success" => true]);
         }
     }
 }

@@ -92,7 +92,7 @@ $bahanbaku = $lihat->bahanbaku();
                         </td>
                         <td>
                             <?php if (!empty($row['bukti_file'])): ?>
-                                <a href="../../assets/bukti_bayar_po/<?= $row['bukti_file'] ?>" target="_blank">
+                                <a href="http://localhost/DSE_WEB/assets/bukti_bayar_po/<?= $row['bukti_file'] ?>" target="_blank">
                                     <!-- <a href="../../assets/bukti_bayar_po/<?= $row['bukti_file'] ?>" target="_blank"> -->
                                     Lihat File
                                 </a>

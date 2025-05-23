@@ -271,7 +271,8 @@
  			</div>
  		</div>
  	</div>
- 	<div class="card mt-4" id="previewBahanBakuCard" style="display: none;">
+ 	<!-- <div class="card mt-4" id="previewBahanBakuCard" style="display: none;"> -->
+ 	<div class="card mt-4" id="previewBahanBakuCard">
  		<div class="card-header bg-warning text-dark">
  			<h5><i class="fa fa-cubes"></i> Preview Kebutuhan Bahan Baku</h5>
  		</div>
@@ -282,6 +283,7 @@
  						<tr>
  							<th>No</th>
  							<th>Nama Bahan Baku</th>
+ 							<th>Harga Modal</th>
  							<th>Kebutuhan Total (kg)</th>
  							<th>Stok Tersedia (kg)</th>
  							<th>Status</th>
@@ -295,8 +297,8 @@
  			</div>
  		</div>
  	</div>
- 	<div class="card mt-4" id="databahanbaku" style="display: none;">
- 		<!-- <div class="card mt-4" id="databahanbaku"> -->
+ 	<!-- <div class="card mt-4" id="databahanbaku" style="display: none;"> -->
+ 	<div class="card mt-4" id="databahanbaku">
  		<div class="card-header bg-warning text-dark">
  			<h5><i class="fa fa-cubes"></i>Bahan Baku</h5>
  		</div>
@@ -308,6 +310,7 @@
  							<th>No</th>
  							<th>Nama Bahan Baku</th>
  							<th>Satuan</th>
+ 							<th>Harga Modal</th>
  							<th>Kebutuhan Total</th>
  							<th>Stok Tersedia</th>
  						</tr>
@@ -320,16 +323,19 @@
 							foreach ($dataBahanBakuUntukFormulasi as $isi) {
 							?>
  							<tr
+ 								data-bahanbakuid="<?= $isi['bahanbaku_id']; ?>"
  								data-id="<?= $no; ?>"
  								data-nama="<?= $isi['nama_bahan'] ?>"
  								data-kebutuhan="<?= $isi['kebutuhan'] ?>"
  								data-stok="<?= $isi['stok']; ?>"
  								data-uom="<?= $isi['uom']; ?>"
+ 								data-hargamodal="<?= $isi['harga_pasaran_per_satuan']; ?>"
  								data-bahanbakuid="<?= $isi['bahanbaku_id']; ?>"
  								data-produkid="<?= $isi['produk_id']; ?>">
  								<td><?= $no; ?></td>
  								<td><?= $isi['nama_bahan']; ?></td>
  								<td><?= $isi['uom']; ?></td>
+ 								<td><?= $isi['harga_pasaran_per_satuan']; ?></td>
  								<td><?= $isi['kebutuhan']; ?></td>
  								<td><?= $isi['stok']; ?></td>
  							</tr>
@@ -358,6 +364,7 @@
  					produkid: $(this).data('produkid'),
  					nama: $(this).data('nama'),
  					kebutuhan: $(this).data('kebutuhan'),
+ 					hargamodal: $(this).data('hargamodal'),
  					stok: $(this).data('stok'),
  					uom: $(this).data('uom')
  				};
@@ -428,6 +435,42 @@
  			return 'Rp ' + rupiah;
  		}
 
+ 		function getDataFromPreviewTable(totalPenjualan) {
+ 			const rows = document.querySelectorAll('#previewBahanBakuTable tbody tr[data-recid]');
+ 			const result = [];
+ 			let totalHargaModal = 0;
+
+ 			rows.forEach(row => {
+ 				const recid = row.dataset.recid;
+
+ 				// Ambil kolom berdasarkan posisi
+ 				const hargaModalText = row.cells[2].textContent.replace(/[^\d]/g, '');
+ 				const kebutuhanText = row.cells[3].textContent.replace(',', '.');
+
+ 				const hargamodal = parseFloat(hargaModalText || 0);
+ 				const total_kebutuhan = parseFloat(kebutuhanText || 0);
+
+ 				totalHargaModal += hargamodal;
+
+ 				result.push({
+ 					recid: parseInt(recid),
+ 					total_kebutuhan: total_kebutuhan,
+ 					hargamodal: hargamodal
+ 				});
+ 			});
+
+ 			const totalProfit = totalPenjualan - totalHargaModal;
+
+ 			console.log("Data:", result);
+ 			console.log("Total Harga Modal:", totalHargaModal);
+ 			console.log("Total Profit:", totalProfit);
+
+ 			return {
+ 				data: result,
+ 				total_hargamodal: totalHargaModal,
+ 				total_profit: totalProfit
+ 			};
+ 		}
 
  		$('#table1').on('click', '.add-row-trigger', function() {
  			var $row = $(this).closest('tr');
@@ -453,7 +496,7 @@
 					<tr data-id="${recid}">
 						<td class="no"></td>
 						<td>
-						${nama}
+						${nama}${recid}
 						<input type="hidden" class="form-control" name="recidProduct[]" readonly value="${recid}" />
 						</td>
 						<td><input type="number" class="form-control" name="jumlah[]" value="0.1" min="0.1" step="0.1" /></td>
@@ -520,69 +563,96 @@
 
  		function loadPreviewBahanBaku() {
  			const kebutuhan = {};
- 			console.log("Mulai loadPreviewBahanBaku");
+ 			let totalHargaModal = 0;
+ 			let totalPenjualan = 0;
+ 			const rows = document.querySelectorAll('#table2 tbody tr');
 
- 			$('#table2 tbody tr').each(function() {
- 				const idProduct = $(this).data('id');
- 				const qtyInput = $(this).find('td:eq(2) input');
- 				const qty = parseFloat(qtyInput.val()) || 0;
+ 			if (rows.length === 0) {
+ 				console.log("Tidak ada baris di tabel.");
+ 				return;
+ 			}
 
- 				console.log("Fetching untuk", idProduct, "qty:", qty);
+ 			const dataFormulasi = getDatabahanFormulasidanStok();
 
- 				// const kebutuhan = []
- 				const dataBahanBakuDanStok = getDatabahanFormulasidanStok();
- 				const loop = dataBahanBakuDanStok.forEach(item => {
+ 			rows.forEach(row => {
+ 				const idProduct = row.dataset.id;
+ 				const hargaInput = row.querySelector('td:nth-child(5) input'); // harga produk
+ 				const qtyInput = row.querySelector('td:nth-child(3) input');
+ 				const qty = parseFloat(qtyInput?.value || 0);
+ 				const harga = parseFloat(hargaInput?.value.replace(/[^0-9]/g, '') || 0);
+
+ 				console.log('Qty:', qty, '| Harga:', harga, 'hargainpuit:', hargaInput?.value, "data:", dataFormulasi);
+
+ 				if (!idProduct || qty <= 0 || harga <= 0) return;
+
+ 				totalPenjualan += harga;
+
+ 				dataFormulasi.forEach(item => {
  					if (item.produkid === parseInt(idProduct)) {
  						if (!kebutuhan[item.nama]) {
  							kebutuhan[item.nama] = {
  								total_kebutuhan: 0,
+ 								hargamodal: 0,
  								stok: item.stok,
  								recid: item.bahanbakuid
  							};
  						}
- 						kebutuhan[item.nama].total_kebutuhan += parseFloat(item.kebutuhan * qty);
+ 						kebutuhan[item.nama].total_kebutuhan += item.kebutuhan * qty;
+ 						const subtotal = item.hargamodal * qty;
+ 						kebutuhan[item.nama].hargamodal += subtotal;
+ 						totalHargaModal += subtotal;
  					}
  				});
-
  			});
-
- 			console.log("HASIL kebutuhan:", kebutuhan);
-
- 			// Lanjut render seperti biasa...
+ 			// Tampilkan hasil
  			const $tbody = $('#previewBahanBakuTable tbody');
  			$tbody.empty();
-
  			let no = 1;
- 			let adaKekurangan = false;
-
  			for (const nama in kebutuhan) {
- 				const total = kebutuhan[nama].total_kebutuhan;
- 				const stok = kebutuhan[nama].stok;
- 				const recid = kebutuhan[nama].recid;
- 				const kurang = stok < total;
+ 				const bb = kebutuhan[nama];
+ 				const kurang = bb.stok < bb.total_kebutuhan;
  				const status = kurang ? 'Stok Kurang' : 'Cukup';
- 				var newRow = `<tr>
-						<td>${no++}</td>
-						<td>${nama}</td>
-						<td>${total}</td>
-						<td>${stok}</td>
-						<td><span class="badge ${kurang ? 'badge-danger' : 'badge-success'}">${status}</span></td>
-						<td>
-							${kurang ? `<button class="btn btn-sm btn-danger" onclick="window.open('index.php?page=transaksi_bahan_baku&openModal=tambah&recid=${recid}', '_blank')">Order</button>` : ''}
-							
-						</td>
-					</tr>`
- 				console.log(newRow, 'newRow')
- 				$tbody.append(newRow);
- 				if (kurang) adaKekurangan = true;
+ 				const row = `
+			<tr data-recid="${bb.recid}">
+				<td>${no++}</td>
+				<td>${nama}</td>
+				<td>Rp ${bb.hargamodal.toLocaleString()}</td>
+				<td>${bb.total_kebutuhan.toFixed(2)}</td>
+				<td>${bb.stok}</td>
+				<td><span class="badge ${kurang ? 'badge-danger' : 'badge-success'}">${status}</span></td>
+				<td>
+					${kurang ? `<button class="btn btn-sm btn-danger" onclick="window.open('index.php?page=transaksi_bahan_baku&openModal=tambah&recid=${bb.recid}', '_blank')">Order</button>` : ''}
+				</td>
+			</tr>`;
+ 				$tbody.append(row);
  			}
 
+ 			// Tambahkan baris total harga modal & profit
  			if (no > 1) {
+ 				const totalProfit = totalPenjualan - totalHargaModal;
+ 				const summaryRows = `
+			<tr style="font-weight: bold; background-color: #f0f0f0;">
+				<td colspan="2">Total Harga Modal</td>
+				<td colspan="5">Rp ${totalHargaModal.toLocaleString()}</td>
+			</tr>
+			<tr style="font-weight: bold; background-color: #e0ffe0;">
+				<td colspan="2">Total Penjualan</td>
+				<td colspan="5">Rp ${totalPenjualan.toLocaleString()}</td>
+			</tr>
+			<tr style="font-weight: bold; background-color: #d0f0ff;">
+				<td colspan="2">Total Profit</td>
+				<td colspan="5">Rp ${totalProfit.toLocaleString()}</td>
+			</tr>
+		`;
+ 				$tbody.append(summaryRows);
  				$('#previewBahanBakuCard').show();
  			} else {
  				$('#previewBahanBakuCard').hide();
  			}
  		}
+
+
+
 
  		$('#use_ppn, #free_ongkir').on('change input', updateFinalTotal);
  		$('#ongkir').on('input', function() {
@@ -713,6 +783,7 @@
  					jumlah: jumlah,
  				});
  			});
+
  			const isPpnChecked = document.getElementById("use_ppn").checked;
  			const isfree_ongkirChecked = document.getElementById("free_ongkir").checked;
  			const isgunakan_tagihanChecked = document.getElementById("gunakan_tagihan").checked;
@@ -724,7 +795,7 @@
  				ongkir: $("#ongkirNumber").val(),
  				tgl_transaksi: $("#tgl_transaksi").val(),
  				estimasi: $("#estimasi_sampai").val(),
- 				bayarDimuka: isgunakan_tagihanChecked ? 1 : 0,
+ 				bayarDimuka: isgunakan_tagihanChecked ? 0 : 1,
  				jatuh_tempo: isgunakan_tagihanChecked ? $("#jatuh_tempo").val() : null,
  				use_inventaris: isuse_inventarisChecked ? 1 : 0,
  				client_select: $("#client_select").val(),
@@ -732,6 +803,7 @@
  				total_semua: $("#total_bayar").val().replace(/[^0-9]/g, ''),
  			}
 
+ 			const hasil = getDataFromPreviewTable(total_harga);
 
  			const payload = {
  				tgl: detailTambahan.tgl_transaksi,
@@ -755,11 +827,12 @@
  				product_id: data[0].recid,
  				tgl_produksi: detailTambahan.tgl_transaksi,
  				tmpt_produksi_id: detailTambahan.produksi_select,
+ 				profit: hasil.total_profit,
 
  				// status_produksi: 0,
  				createdby: $("#username").val(),
  				modifiedby: $("#username").val(),
-
+ 				dataBahanBaku: hasil.data
  				// dataInventaris: data2.filter(obj => obj.checked === 1),
  				// detail: detailTambahan
 

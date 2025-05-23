@@ -246,7 +246,7 @@ WHERE bb.stok <= u.batas_aman";
     public function dataBahanBakuUntukFormulasi()
     {
         // echo "<pre>";
-        $sql = "SELECT bb.recid,bb.nama_bb, bb.stok, bb.satuan, f.qty_per_ton, f.produk_id
+        $sql = "SELECT bb.recid,bb.nama_bb, bb.stok, bb.satuan, bb.harga_pasaran_per_satuan, f.qty_per_ton, f.produk_id
                 FROM tbl_formulasi f
                 JOIN tbl_bahan_baku bb ON f.bahanbaku_id = bb.recid";
 
@@ -261,7 +261,8 @@ WHERE bb.stok <= u.batas_aman";
                 'nama_bahan' => $row['nama_bb'],
                 'kebutuhan' => $row['qty_per_ton'],
                 'stok' => intval($row['stok']),
-                'uom' => $row['satuan']
+                'uom' => $row['satuan'],
+                'harga_pasaran_per_satuan' => $row['harga_pasaran_per_satuan']
             ];
         }
         // var_dump($data);
