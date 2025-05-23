@@ -310,7 +310,7 @@ $bahanbaku = $lihat->bahanbaku();
 </div>
 <div id="modalTerima" class="modal fade" role="dialog">
     <div class="modal-dialog">
-        <form action="fungsi/edit/edit.php?transaksi_bahanbaku=terima_barang" method="POST">
+        <form id="formTerima" action="fungsi/edit/edit.php?transaksi_bahanbaku=terima_barang" method="POST">
             <div class="modal-content" style="border-radius:0px;">
                 <div class="modal-header bg-success text-white">
                     <h5 class="modal-title"><i class="fa fa-file-invoice"></i> Konfirmasi Penerimaan Barang</h5>
@@ -446,6 +446,16 @@ $bahanbaku = $lihat->bahanbaku();
             $('#terima-recid').val(recid);
             $('#qty_po').val(qty_po);
             $('#bahanbakuid').val(bahanbakuid);
+        });
+        $('#formTerima').on('submit', function(e) {
+            const qtyPo = parseFloat($('#qty_po').val()) || 0;
+            const qtyAktual = parseFloat($('input[name="qty_aktual"]').val()) || 0;
+
+            if (qtyAktual < qtyPo) {
+                e.preventDefault(); // cegah form terkirim
+                alert('Qty Diterima tidak boleh kurang dari Qty PO!');
+                return false;
+            }
         });
 
 
