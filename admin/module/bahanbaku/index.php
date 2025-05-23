@@ -5,9 +5,14 @@
                 <p>Tambah Stok Berhasil !</p>
             </div>
         <?php } ?>
-        <?php if (isset($_GET['success'])) { ?>
+        <?php if (isset($_GET['success']) && $_GET['success'] === "tambah") { ?>
             <div class="alert alert-success">
                 <p>Tambah Data Berhasil !</p>
+            </div>
+        <?php } ?>
+        <?php if (isset($_GET['success']) && $_GET['success'] === "edit") { ?>
+            <div class="alert alert-success">
+                <p>Update Data Berhasil !</p>
             </div>
         <?php } ?>
         <?php if (isset($_GET['remove'])) { ?>
@@ -17,21 +22,17 @@
         <?php } ?>
 
         <?php
-        $sql = " select * from tbl_bahan_baku where stok <= 3";
-        $row = $config->prepare($sql);
-        $row->execute();
-        $r = $row->rowCount();
+        $r = $lihat->cekstok();
         if ($r > 0) {
             echo "
 				<div class='alert alert-warning'>
-					<span class='glyphicon glyphicon-info-sign'></span> Ada <span style='color:red'>$r</span> barang yang Stok tersisa sudah kurang dari 3 items. silahkan pesan lagi !!
-					<span class='pull-right'><a href='index.php?page=barang&stok=yes'>Cek Barang <i class='fa fa-angle-double-right'></i></a></span>
+					<span class='glyphicon glyphicon-info-sign'></span> Ada <span style='color:red'>$r</span> bahan baku yang Stok nya tersisa sudah kurang dari batas aman produksi. silahkan pesan lagi !!
 				</div>
 				";
         }
         ?>
         <!-- Trigger the modal with a button -->
-        <button type="button" class="btn btn-primary btn-md mr-2" data-toggle="modal" data-target="#myModal">
+        <button type="button" class="btn btn-primary btn-md mr-2 btn-add" data-toggle="modal" data-target="#myModal">
             <i class="fa fa-plus"></i> Insert Data</button>
 
         <a href="index.php?page=bahanbaku" class="btn btn-success btn-md">
@@ -50,6 +51,7 @@
                             <th>Stok</th>
                             <th>Supplier</th>
                             <th>Satuan</th>
+                            <th>Harga Pasaran per Satuan</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
@@ -73,8 +75,9 @@
                                 </td>
                                 <td><?php echo $isi['nama_supplier']; ?></td>
                                 <td><?php echo $isi['satuan']; ?></td>
+                                <td>Rp <?= number_format($isi['harga_pasaran_per_satuan'], 0, ',', '.') ?></td>
                                 <td>
-                                    <?php if ($isi['stok'] <=  '3') { ?>
+                                    <?php if ($isi['stok'] <=  $isi['batas_aman']) { ?>
 
                                         <a href="index.php?page=transaksi_bahan_baku&openModal=tambah&recid=<?php echo $isi['recid']; ?>"
                                             onclick="javascript:return confirm('Order Bahan Baku?');">
@@ -89,9 +92,15 @@
                                     <?php } else { ?>
                                         <a href="index.php?page=bahanbaku/details&bahanbaku=<?php echo $isi['recid']; ?>"><button
                                                 class="btn btn-primary btn-xs">Details</button></a>
-
-                                        <a href="index.php?page=bahanbaku/edit&bahanbaku=<?php echo $isi['recid']; ?>"><button
-                                                class="btn btn-warning btn-xs">Edit</button></a>
+                                        <button
+                                            data-toggle="modal" data-target="#myModal"
+                                            class="btn btn-warning btn-xs btn-edit"
+                                            data-id="<?php echo $isi['recid']; ?>"
+                                            data-nama="<?php echo $isi['nama_bb']; ?>"
+                                            data-desc="<?php echo $isi['desc']; ?>"
+                                            data-satuan="<?php echo $isi['satuan']; ?>"
+                                            data-supplier="<?php echo $isi['supp_id']; ?>"
+                                            data-harga="<?php echo $isi['harga_pasaran_per_satuan']; ?>">Edit</button>
                                         <a href="fungsi/hapus/hapus.php?bahanbaku=hapus&id=<?php echo $isi['recid']; ?>"
                                             onclick="javascript:return confirm('Hapus Data Bahan baku ?');"><button
                                                 class="btn btn-danger btn-xs">Hapus</button></a>
@@ -118,30 +127,24 @@
                         <h5 class="modal-title"><i class="fa fa-plus"></i> Tambah Bahan Baku</h5>
                         <button type="button" class="close" data-dismiss="modal">&times;</button>
                     </div>
-                    <form action="fungsi/tambah/tambah.php?bahanbaku=tambah" method="POST">
+                    <form id="form-bahanbaku" action="fungsi/tambah/tambah.php?bahanbaku=tambah" method="POST">
                         <div class="modal-body">
+                            <input type="hidden" name="id" id="edit-id">
                             <table class="table table-striped bordered">
-
-                                <!-- <tr>
-                                    <td>ID Barang</td>
-                                    <td><input type="text" readonly="readonly" required value="<?php echo $format; ?>"
-                                            class="form-control" name="id"></td>
-                                </tr> -->
-
                                 <tr>
                                     <td>Nama Bahan Baku</td>
-                                    <td><input type="text" placeholder="Nama Bahan Baku" required class="form-control"
+                                    <td><input id="nama" type="text" placeholder="Nama Bahan Baku" required class="form-control"
                                             name="nama"></td>
                                 </tr>
                                 <tr>
                                     <td>Deskripsi</td>
-                                    <td><input type="text" placeholder="Deskripsi" required class="form-control"
+                                    <td><input id="desc" type="text" placeholder="Deskripsi" required class="form-control"
                                             name="desc"></td>
                                 </tr>
                                 <tr>
                                     <td>Satuan / UOM</td>
                                     <td>
-                                        <select name="satuan" class="form-control" required>
+                                        <select id="satuan" name="satuan" class="form-control" required>
                                             <option value="#">Pilih Satuan</option>
                                             <option value="Kg">Kg</option>
                                             <option value="Ton">Ton</option>
@@ -157,7 +160,7 @@
                                 <tr>
                                     <td>Supplier</td>
                                     <td>
-                                        <select name="supplier" class="form-control" required>
+                                        <select id="supplier" name="supplier" class="form-control" required>
                                             <option value="#">Pilih Supplier</option>
                                             <?php $kat = $lihat->supplier();
                                             foreach ($kat as $isi) {     ?>
@@ -167,10 +170,18 @@
                                         </select>
                                     </td>
                                 </tr>
+
+                                <tr>
+                                    <td>Harga Pasaran per Satuan</td>
+                                    <td>
+                                        <input type="text" class="form-control" id="input-harga-format" required>
+                                        <input type="hidden" name="harga" id="input-harga"> <!-- ini yang dikirim ke PHP -->
+                                    </td>
+                                </tr>
                             </table>
                         </div>
                         <div class="modal-footer">
-                            <button type="submit" class="btn btn-primary"><i class="fa fa-plus"></i> Insert
+                            <button id="btn-submit" type="submit" class="btn btn-primary"><i class="fa fa-plus"></i> Insert
                                 Data</button>
                             <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
                         </div>
@@ -179,3 +190,55 @@
             </div>
 
         </div>
+
+        <script>
+            function formatRupiah(angka) {
+                var number_string = angka.replace(/[^,\d]/g, '').toString(),
+                    split = number_string.split(','),
+                    sisa = split[0].length % 3,
+                    rupiah = split[0].substr(0, sisa),
+                    ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+
+                if (ribuan) {
+                    let separator = sisa ? '.' : '';
+                    rupiah += separator + ribuan.join('.');
+                }
+
+                rupiah = split[1] !== undefined ? rupiah + ',' + split[1] : rupiah;
+                return 'Rp ' + rupiah;
+            }
+            $(document).ready(function() {
+                $('[data-toggle="modal"]').on('click', function() {
+                    const isEdit = $(this).hasClass('btn-edit');
+                    if (isEdit) {
+                        const data = $(this).data();
+                        $('.modal-title').text('Edit Bahan Baku');
+                        $('#form-bahanbaku').attr('action', 'fungsi/edit/edit.php?bahanbaku=edit');
+                        $('#btn-submit').html('<i class="fa fa-save"></i> Update Data');
+
+                        var harga = data.harga.toString();
+                        $('#edit-id').val(data.id);
+                        $('#nama').val(data.nama).prop('readonly', true);
+                        $('#desc').val(data.desc);
+                        $('#satuan').val(data.satuan);
+                        $('#supplier').val(data.supplier);
+                        $('#input-harga-format').val(formatRupiah(harga));
+                        $('#input-harga').val(harga);
+
+                        $('#myModal').modal('show');
+                    } else {
+                        $('.modal-title').html('<i class="fa fa-plus"></i> Tambah Bahan Baku');
+                        $('#form-produk').attr('action', 'fungsi/tambah/tambah.php?bahanbaku=tambah');
+                        $('#btn-submit').html('<i class="fa fa-plus"></i> Insert Data');
+                        $('#form-bahanbaku')[0].reset();
+                        $('#edit-id').val('');
+                        $('#nama').val("").prop('readonly', false);
+                    }
+                });
+                $('#input-harga-format').on('input', function() {
+                    let raw = $(this).val().replace(/[^0-9]/g, ''); // Ambil angka mentah
+                    $('#input-harga').val(raw); // Simpan ke hidden input
+                    $(this).val(formatRupiah(raw)); // Tampilkan format Rupiah
+                });
+            });
+        </script>

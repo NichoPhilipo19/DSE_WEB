@@ -28,6 +28,7 @@ class view
             bb.stok,
             bb.satuan,
             bb.supp_id,
+            bb.harga_pasaran_per_satuan,
             u.kode_uom,
             u.nama_uom,
             u.batas_aman,
@@ -41,6 +42,19 @@ class view
         $row->execute();
         $hasil = $row->fetchAll();
         return $hasil;
+    }
+    public function cekstok()
+    {
+        // echo "<pre>";
+        $sql = "SELECT bb.*, u.batas_aman 
+FROM tbl_bahan_baku bb 
+LEFT JOIN uom u ON bb.satuan = u.kode_uom
+WHERE bb.stok <= u.batas_aman";
+        $row = $this->db->prepare($sql);
+        $row->execute();
+        $r = $row->rowCount();
+        // print_r(($r));
+        return $r;
     }
     
     

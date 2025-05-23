@@ -58,7 +58,7 @@
  											data-nama="<?= $isi['nama_product']; ?>"
  											data-desc="<?= $isi['desc_product']; ?>"
  											data-grade="<?= $isi['grade']; ?>"
- 											data-level="<?= $isi['level']; ?>">Tambah ke kasir</button>
+ 											data-level="<?= $isi['level']; ?>">Tambah ke transaksi</button>
 
  									</td>
  								</tr>
@@ -160,7 +160,7 @@
  									</div>
  									<div class="form-group mt-2">
  										<label for="jatuh_tempo">Tanggal Jatuh Tempo</label>
- 										<input type="date" class="form-control" id="jatuh_tempo">
+ 										<input type="date" class="form-control" disabled id="jatuh_tempo">
  									</div>
  								</div>
  							</div>
@@ -220,8 +220,7 @@
  									</select>
  								</div>
  							</div>
- 							<div class="row">
- 								<!-- PPn -->
+ 							<!-- <div class="row">
  								<div class="col-md-6">
  									<div class="form-check">
  										<input class="form-check-input" type="checkbox" id="use_sewatempat">
@@ -231,12 +230,12 @@
  									</div>
  									<div class="form-group mt-2">
  										<label for="ppn_amount">Harga Jasa Produksi</label>
- 										<input type="text" class="form-control" id="jasa_amount" value="Rp 0">
+ 										<input type="text" class="form-control" id="jasa_amount" readonly value="Rp 0">
  										<input type="hidden" class="form-control" id="jasa_amount_hidden" value="0">
  									</div>
  								</div>
 
- 							</div>
+ 							</div> -->
  						</div>
  					</div>
  				</div>
@@ -756,6 +755,7 @@
  				product_id: data[0].recid,
  				tgl_produksi: detailTambahan.tgl_transaksi,
  				tmpt_produksi_id: detailTambahan.produksi_select,
+
  				// status_produksi: 0,
  				createdby: $("#username").val(),
  				modifiedby: $("#username").val(),

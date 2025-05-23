@@ -6,24 +6,42 @@ if (!empty($_SESSION['admin'])) {
 
     echo "<pre>";
     if (!empty($_GET['bahanbaku'])) {
-        $nama = htmlentities($_POST['nama']);
-        $desc = htmlentities($_POST['desc']);
-        $satuan = htmlentities($_POST['satuan']);
-        // $stok = htmlentities($_POST['stok']);
+        echo "<pre>";
+        // print_r($_POST);
+        // Ambil dan sanitasi input
+        $nama     = htmlentities($_POST['nama']);
+        $desc     = htmlentities($_POST['desc']);
+        $satuan   = htmlentities($_POST['satuan']);
         $supplier = htmlentities($_POST['supplier']);
+        $harga    = intval($_POST['harga']);
 
-        $data[] = $nama;
-        $data[] = $desc;
-        $data[] = 0;
-        $data[] = $satuan;
-        $data[] = $supplier;
-        $sql = 'INSERT INTO tbl_bahan_baku (nama_bb, `desc`,stok, satuan, supp_id) 
-			    VALUES (?,?,?,?,?) ';
+        // Siapkan data untuk binding (harus sesuai jumlah tanda tanya)
+        $data = [
+            $nama,
+            $desc,
+            0, // stok default
+            $satuan,
+            $supplier,
+            $harga
+        ];
+
+        // SQL: jumlah tanda tanya (?) harus sesuai jumlah elemen di $data (6)
+        $sql = 'INSERT INTO tbl_bahan_baku 
+                (nama_bb, `desc`, stok, satuan, supp_id, harga_pasaran_per_satuan) 
+                VALUES (?, ?, ?, ?, ?, ?)';
+
         $row = $config->prepare($sql);
         $hasil = $row->execute($data);
-        // var_dump($hasil);
-        echo '<script>window.location="../../index.php?page=bahanbaku&success=tambah-data"</script>';
+
+        if ($hasil) {
+            echo '<script>alert("Data berhasil ditambahkan!"); window.location="../../index.php?page=bahanbaku&success=tambah";</script>';
+        } else {
+            // Debug error PDO
+            $error = $row->errorInfo();
+            echo "Gagal menambahkan data: " . $error[2];
+        }
     }
+
 
     if (!empty($_GET['client'])) {
         $nama_client   = htmlentities($_POST['nama']);
@@ -345,7 +363,6 @@ if (!empty($_SESSION['admin'])) {
             ':product_id' => $input['product_id'],
             ':tgl_produksi' => $tgl_produksi,
             ':tmpt_produksi_id' => $input['tmpt_produksi_id'],
-            ':status_produksi' => $input['status_produksi'],
             ':createdby' => $input['createdby'],
             ':modifiedby' => $input['modifiedby']
         ];
@@ -368,7 +385,7 @@ if (!empty($_SESSION['admin'])) {
         if (!$row->execute($data)) {
             print_r($row->errorInfo()); // DEBUG error
         } else {
-            echo '<script>window.location="../../index.php?page=jual&success=tambah";</script>';
+            // echo '<script>window.location="../../index.php?page=jual&success=tambah";</script>';
         }
     }
 }

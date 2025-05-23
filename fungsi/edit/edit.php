@@ -4,26 +4,47 @@ if (!empty($_SESSION['admin'])) {
     require '../../config.php';
 
     if (!empty($_GET['bahanbaku'])) {
-        $recid = htmlentities($_POST['recid']);
-        $nama = htmlentities($_POST['nama']);
-        $desc = htmlentities($_POST['desc']);
-        $satuan = htmlentities($_POST['satuan']);
-        $stok = htmlentities($_POST['stok']);
-        $supplier = htmlentities($_POST['supplier']);
 
-        $data[] = $nama;
-        $data[] = $desc;
-        $data[] = $stok;
-        $data[] = $satuan;
-        $data[] = $supplier;
-        $data[] = $recid;
+        echo "<pre>";
 
-        $sql = 'UPDATE tbl_bahan_baku SET nama_bb=?, `desc`=?, stok=?, satuan=?, supp_id=? WHERE recid=?';
+        // Sanitasi input
+        $recid                     = intval($_POST['id']);
+        $nama                      = htmlentities($_POST['nama']);
+        $desc                      = htmlentities($_POST['desc']);
+        $satuan                    = htmlentities($_POST['satuan']);
+        $supplier                  = htmlentities($_POST['supplier']);
+        $harga_pasaran_per_satuan = intval($_POST['harga']); // pastikan angka
+
+        // Siapkan array data sesuai urutan query
+        $data = [
+            $nama,
+            $desc,
+            $satuan,
+            $supplier,
+            $harga_pasaran_per_satuan,
+            $recid
+        ];
+
+        // Query update
+        $sql = 'UPDATE tbl_bahan_baku 
+                SET nama_bb = ?, 
+                    `desc` = ?, 
+                    satuan = ?, 
+                    supp_id = ?, 
+                    harga_pasaran_per_satuan = ? 
+                WHERE recid = ?';
+
         $row = $config->prepare($sql);
-        $row->execute($data);
-        // echo $row;
-        echo '<script>window.location="../../index.php?page=bahanbaku/edit&bahanbaku=' . $recid . '&success=edit-data"</script>';
+        $hasil = $row->execute($data);
+
+        if ($hasil) {
+            echo '<script>alert("Data berhasil diubah!"); window.location="../../index.php?page=bahanbaku&success=edit";</script>';
+        } else {
+            $error = $row->errorInfo();
+            echo "Gagal update data: " . $error[2];
+        }
     }
+
 
     if (!empty($_GET['client'])) {
         $recid         = htmlentities($_POST['recid']);
