@@ -14,6 +14,7 @@ if (!empty($_SESSION['admin'])) {
         $satuan                    = htmlentities($_POST['satuan']);
         $supplier                  = htmlentities($_POST['supplier']);
         $harga_pasaran_per_satuan = intval($_POST['harga']); // pastikan angka
+        $harga_beli    = intval($_POST['harga_beli']);
 
         // Siapkan array data sesuai urutan query
         $data = [
@@ -21,6 +22,7 @@ if (!empty($_SESSION['admin'])) {
             $desc,
             $satuan,
             $supplier,
+            $harga_beli,
             $harga_pasaran_per_satuan,
             $recid
         ];
@@ -31,6 +33,7 @@ if (!empty($_SESSION['admin'])) {
                     `desc` = ?, 
                     satuan = ?, 
                     supp_id = ?, 
+                    harga_beli = ?, 
                     harga_pasaran_per_satuan = ? 
                 WHERE recid = ?';
 
@@ -141,15 +144,17 @@ if (!empty($_SESSION['admin'])) {
         $grade         = htmlentities($_POST['grade']);
         $level         = htmlentities($_POST['level']);
         $harga          = intval($_POST['harga']);
+        $status = intval($_POST['inputaktif']);
 
         $data[] = $nama_product;
         $data[] = $desc_product;
         $data[] = $grade;
         $data[] = $level;
         $data[] = $harga;
+        $data[] = $status;
         $data[] = $recid;
 
-        $sql = 'UPDATE tbl_product SET nama_product=?, desc_product=?, grade=?, level=?, hargaPerTon =? WHERE recid=?';
+        $sql = 'UPDATE tbl_product SET nama_product=?, desc_product=?, grade=?, level=?, hargaPerTon =?, status=? WHERE recid=?';
         $row = $config->prepare($sql);
         $row->execute($data);
 

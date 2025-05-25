@@ -29,6 +29,7 @@
                     <th>Grade</th>
                     <th>Level</th>
                     <th>Harga Per Ton</th>
+                    <th>Status</th>
                     <th>Aksi</th>
                 </tr>
             </thead>
@@ -46,6 +47,12 @@
                         <td><?= $isi['level']; ?></td>
                         <td>Rp <?= number_format($isi['hargaPerTon'], 0, ',', '.') ?></td>
                         <td>
+                            <?php if ($isi['status'] == 1) { ?>
+                                <span class="badge badge-success">Aktif</span>
+                            <?php } else { ?>
+                                <span class="badge badge-danger">Nonaktif</span>
+                            <?php } ?>
+                        <td>
                             <a href="index.php?page=product/details&product=<?php echo $isi['recid']; ?>"><button
                                     class="btn btn-primary btn-xs">Details</button></a>
                             <button class="btn btn-warning btn-xs btn-edit"
@@ -55,11 +62,14 @@
                                 data-desc="<?= $isi['desc_product']; ?>"
                                 data-grade="<?= $isi['grade']; ?>"
                                 data-level="<?= $isi['level']; ?>"
-                                data-harga="<?= $isi['hargaPerTon']; ?>">Edit</button>
-                            <a href="fungsi/hapus/hapus.php?product=hapus&id=<?= $isi['recid']; ?>"
-                                onclick="return confirm('Hapus Data Produk?');">
-                                <button class="btn btn-danger btn-xs">Hapus</button>
-                            </a>
+                                data-harga="<?= $isi['hargaPerTon']; ?>"
+                                data-status="<?= $isi['status']; ?>">Edit</button>
+                            <?php if ($isi['status'] == 0) { ?>
+                                <a href="fungsi/hapus/hapus.php?product=hapus&id=<?= $isi['recid']; ?>"
+                                    onclick="return confirm('Hapus Data Produk?');">
+                                    <button class="btn btn-danger btn-xs">Hapus</button>
+                                </a>
+                            <?php } ?>
                         </td>
                     </tr>
                 <?php $no++;
@@ -119,6 +129,17 @@
                                 <input type="hidden" name="harga" id="input-harga"> <!-- ini yang dikirim ke PHP -->
                             </td>
                         </tr>
+                        <tr>
+                            <td>Status</td>
+                            <td>
+                                <input class="form-check-input" type="checkbox" id="aktif" name="aktif">
+                                <label class="form-check-label" for="aktif">
+                                    Aktif
+                                </label>
+                                <input type="hidden" name="inputaktif" id="inputaktif">
+                            </td>
+                        </tr>
+
                     </table>
                 </div>
                 <div class="modal-footer">
@@ -162,6 +183,7 @@
                 $('#form-produk').attr('action', 'fungsi/edit/edit.php?product=edit');
                 $('#btn-submit').html('<i class="fa fa-save"></i> Update Data');
                 var harga = $(this).data('harga').toString();
+                var aktif = $(this).data('status');
                 // alert(harga, formatRupiah(harga));
 
                 $('#input-id').val($(this).data('id'));
@@ -171,6 +193,14 @@
                 $('#input-level').val($(this).data('level'));
                 $('#input-harga-format').val(formatRupiah(harga));
                 $('#input-harga').val(harga);
+                if (aktif === 1) {
+                    $('#aktif').prop('checked', true);
+                    $('#inputaktif').val('1');
+                } else {
+                    $('#aktif').prop('checked', false);
+                    $('#inputaktif').val('0');
+                }
+                $('#input-harga').val(harga);
             } else {
                 $('#modal-title').html('<i class="fa fa-plus"></i> Tambah Produk');
                 $('#form-produk').attr('action', 'fungsi/tambah/tambah.php?product=tambah');
@@ -178,12 +208,20 @@
                 $('#form-produk')[0].reset();
                 $('#input-id').val('');
                 $('#input-nama').val("").prop('readonly', false);
+                $('#inputaktif').val('0');
             }
         });
         $('#input-harga-format').on('input', function() {
             let raw = $(this).val().replace(/[^0-9]/g, ''); // Ambil angka mentah
             $('#input-harga').val(raw); // Simpan ke hidden input
             $(this).val(formatRupiah(raw)); // Tampilkan format Rupiah
+        });
+        $('#aktif').on('change', function() {
+            if ($(this).is(':checked')) {
+                $('#inputaktif').val('1');
+            } else {
+                $('#inputaktif').val('0');
+            }
         });
     });
 </script>

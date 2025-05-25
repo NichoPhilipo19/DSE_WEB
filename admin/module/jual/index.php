@@ -52,14 +52,14 @@
  									<td><?= $isi['level']; ?></td>
  									<td>Rp <?= number_format($isi['hargaPerTon'], 0, ',', '.') ?></td>
  									<td>
- 										<button class="btn btn-warning btn-xs add-row-trigger"
-
- 											data-id="<?= $isi['recid']; ?>"
- 											data-nama="<?= $isi['nama_product']; ?>"
- 											data-desc="<?= $isi['desc_product']; ?>"
- 											data-grade="<?= $isi['grade']; ?>"
- 											data-level="<?= $isi['level']; ?>">Tambah ke transaksi</button>
-
+ 										<?php if ($isi['status'] == 1) { ?>
+ 											<button class="btn btn-warning btn-xs add-row-trigger"
+ 												data-id="<?= $isi['recid']; ?>"
+ 												data-nama="<?= $isi['nama_product']; ?>"
+ 												data-desc="<?= $isi['desc_product']; ?>"
+ 												data-grade="<?= $isi['grade']; ?>"
+ 												data-level="<?= $isi['level']; ?>">Tambah ke transaksi</button>
+ 										<?php } ?>
  									</td>
  								</tr>
  							<?php $no++;
@@ -283,9 +283,10 @@
  						<tr>
  							<th>No</th>
  							<th>Nama Bahan Baku</th>
- 							<th>Harga Modal</th>
- 							<th>Kebutuhan Total (kg)</th>
- 							<th>Stok Tersedia (kg)</th>
+ 							<th>Harga Beli Bahan Baku</th>
+ 							<th>Harga Jual Bahan Baku</th>
+ 							<th>Kebutuhan Total (satuan)</th>
+ 							<th>Stok Tersedia (satuan)</th>
  							<th>Status</th>
  							<th>Aksi</th>
  						</tr>
@@ -310,7 +311,8 @@
  							<th>No</th>
  							<th>Nama Bahan Baku</th>
  							<th>Satuan</th>
- 							<th>Harga Modal</th>
+ 							<th>Harga Beli</th>
+ 							<th>Harga Jual (Modal)</th>
  							<th>Kebutuhan Total</th>
  							<th>Stok Tersedia</th>
  						</tr>
@@ -329,12 +331,14 @@
  								data-kebutuhan="<?= $isi['kebutuhan'] ?>"
  								data-stok="<?= $isi['stok']; ?>"
  								data-uom="<?= $isi['uom']; ?>"
+ 								data-hargabeli="<?= $isi['harga_beli']; ?>"
  								data-hargamodal="<?= $isi['harga_pasaran_per_satuan']; ?>"
  								data-bahanbakuid="<?= $isi['bahanbaku_id']; ?>"
  								data-produkid="<?= $isi['produk_id']; ?>">
  								<td><?= $no; ?></td>
  								<td><?= $isi['nama_bahan']; ?></td>
  								<td><?= $isi['uom']; ?></td>
+ 								<td><?= $isi['harga_beli']; ?></td>
  								<td><?= $isi['harga_pasaran_per_satuan']; ?></td>
  								<td><?= $isi['kebutuhan']; ?></td>
  								<td><?= $isi['stok']; ?></td>
@@ -364,6 +368,7 @@
  					produkid: $(this).data('produkid'),
  					nama: $(this).data('nama'),
  					kebutuhan: $(this).data('kebutuhan'),
+ 					hargabeli: $(this).data('hargabeli'),
  					hargamodal: $(this).data('hargamodal'),
  					stok: $(this).data('stok'),
  					uom: $(this).data('uom')
@@ -439,36 +444,44 @@
  			const rows = document.querySelectorAll('#previewBahanBakuTable tbody tr[data-recid]');
  			const result = [];
  			let totalHargaModal = 0;
+ 			let totalHargaBeliModal = 0;
 
  			rows.forEach(row => {
  				const recid = row.dataset.recid;
 
  				// Ambil kolom berdasarkan posisi
- 				const hargaModalText = row.cells[2].textContent.replace(/[^\d]/g, '');
- 				const kebutuhanText = row.cells[3].textContent.replace(',', '.');
+ 				const hargaBeliText = row.cells[2].textContent.replace(/[^\d]/g, '');
+ 				const hargaModalText = row.cells[3].textContent.replace(/[^\d]/g, '');
+ 				const kebutuhanText = row.cells[4].textContent.replace(',', '.');
 
+ 				const hargabeli = parseFloat(hargaBeliText || 0);
  				const hargamodal = parseFloat(hargaModalText || 0);
  				const total_kebutuhan = parseFloat(kebutuhanText || 0);
 
  				totalHargaModal += hargamodal;
+ 				totalHargaBeliModal += hargabeli;
 
  				result.push({
  					recid: parseInt(recid),
  					total_kebutuhan: total_kebutuhan,
- 					hargamodal: hargamodal
+ 					hargamodal: hargamodal,
+ 					hargabeli: hargabeli
  				});
  			});
 
  			const totalProfit = totalPenjualan - totalHargaModal;
+ 			const totalProfitBahanBaku = totalHargaModal - totalHargaBeliModal;
 
  			console.log("Data:", result);
  			console.log("Total Harga Modal:", totalHargaModal);
  			console.log("Total Profit:", totalProfit);
+ 			console.log("Total Profit bahan baku:", totalProfitBahanBaku);
 
  			return {
  				data: result,
  				total_hargamodal: totalHargaModal,
- 				total_profit: totalProfit
+ 				total_profit: totalProfit,
+ 				total_profit_bahan_baku: totalProfitBahanBaku,
  			};
  		}
 
@@ -563,6 +576,7 @@
 
  		function loadPreviewBahanBaku() {
  			const kebutuhan = {};
+ 			let totalHargabeli = 0;
  			let totalHargaModal = 0;
  			let totalPenjualan = 0;
  			const rows = document.querySelectorAll('#table2 tbody tr');
@@ -592,15 +606,20 @@
  						if (!kebutuhan[item.nama]) {
  							kebutuhan[item.nama] = {
  								total_kebutuhan: 0,
+ 								hargabeli: 0,
  								hargamodal: 0,
  								stok: item.stok,
- 								recid: item.bahanbakuid
+ 								uom: item.uom,
+ 								recid: item.bahanbakuid,
  							};
  						}
  						kebutuhan[item.nama].total_kebutuhan += item.kebutuhan * qty;
  						const subtotal = item.hargamodal * qty;
  						kebutuhan[item.nama].hargamodal += subtotal;
+ 						const subtotalbeli = item.hargabeli * qty;
+ 						kebutuhan[item.nama].hargabeli += subtotalbeli;
  						totalHargaModal += subtotal;
+ 						totalHargabeli += subtotalbeli;
  					}
  				});
  			});
@@ -616,9 +635,10 @@
 			<tr data-recid="${bb.recid}">
 				<td>${no++}</td>
 				<td>${nama}</td>
+				<td>Rp ${bb.hargabeli.toLocaleString()}</td>
 				<td>Rp ${bb.hargamodal.toLocaleString()}</td>
-				<td>${bb.total_kebutuhan.toFixed(2)}</td>
-				<td>${bb.stok}</td>
+				<td>${bb.total_kebutuhan.toFixed(2)} (${bb.uom})</td>
+				<td>${bb.stok} (${bb.uom})</td>
 				<td><span class="badge ${kurang ? 'badge-danger' : 'badge-success'}">${status}</span></td>
 				<td>
 					${kurang ? `<button class="btn btn-sm btn-danger" onclick="window.open('index.php?page=transaksi_bahan_baku&openModal=tambah&recid=${bb.recid}', '_blank')">Order</button>` : ''}
@@ -630,6 +650,7 @@
  			// Tambahkan baris total harga modal & profit
  			if (no > 1) {
  				const totalProfit = totalPenjualan - totalHargaModal;
+ 				const totalProfitBeli = totalHargaModal - totalHargabeli;
  				const summaryRows = `
 			<tr style="font-weight: bold; background-color: #f0f0f0;">
 				<td colspan="2">Total Harga Modal</td>
@@ -640,8 +661,12 @@
 				<td colspan="5">Rp ${totalPenjualan.toLocaleString()}</td>
 			</tr>
 			<tr style="font-weight: bold; background-color: #d0f0ff;">
-				<td colspan="2">Total Profit</td>
+				<td colspan="2">Total Profit Penjualan Product</td>
 				<td colspan="5">Rp ${totalProfit.toLocaleString()}</td>
+			</tr>
+			<tr style="font-weight: bold; background-color: #d0f0ff;">
+				<td colspan="2">Total Profit Penjualan Bahan Baku</td>
+				<td colspan="5">Rp ${totalProfitBeli.toLocaleString()}</td>
 			</tr>
 		`;
  				$tbody.append(summaryRows);
@@ -828,6 +853,7 @@
  				tgl_produksi: detailTambahan.tgl_transaksi,
  				tmpt_produksi_id: detailTambahan.produksi_select,
  				profit: hasil.total_profit,
+ 				profit_bahanbaku: hasil.total_profit_bahan_baku,
 
  				// status_produksi: 0,
  				createdby: $("#username").val(),

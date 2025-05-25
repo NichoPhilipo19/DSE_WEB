@@ -1,0 +1,2 @@
+chmod 777 assets/bukti_bayar_po
+chmod 777 assets/bukti_bayar_inv

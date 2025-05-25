@@ -22,13 +22,7 @@ class view
     public function bahanbaku()
     {
         $sql = "SELECT 
-            bb.recid,
-            bb.nama_bb,
-            bb.`desc`,
-            bb.stok,
-            bb.satuan,
-            bb.supp_id,
-            bb.harga_pasaran_per_satuan,
+            bb.*,
             u.kode_uom,
             u.nama_uom,
             u.batas_aman,
@@ -246,7 +240,7 @@ WHERE bb.stok <= u.batas_aman";
     public function dataBahanBakuUntukFormulasi()
     {
         // echo "<pre>";
-        $sql = "SELECT bb.recid,bb.nama_bb, bb.stok, bb.satuan, bb.harga_pasaran_per_satuan, f.qty_per_ton, f.produk_id
+        $sql = "SELECT bb.recid,bb.nama_bb, bb.stok, bb.satuan,bb.harga_beli, bb.harga_pasaran_per_satuan, f.qty_per_ton, f.produk_id
                 FROM tbl_formulasi f
                 JOIN tbl_bahan_baku bb ON f.bahanbaku_id = bb.recid";
 
@@ -262,6 +256,7 @@ WHERE bb.stok <= u.batas_aman";
                 'kebutuhan' => $row['qty_per_ton'],
                 'stok' => intval($row['stok']),
                 'uom' => $row['satuan'],
+                'harga_beli' => $row['harga_beli'],
                 'harga_pasaran_per_satuan' => $row['harga_pasaran_per_satuan']
             ];
         }

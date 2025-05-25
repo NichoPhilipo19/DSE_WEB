@@ -51,7 +51,8 @@
                             <th>Stok</th>
                             <th>Supplier</th>
                             <th>Satuan</th>
-                            <th>Harga Pasaran per Satuan</th>
+                            <th>Harga Beli per Satuan</th>
+                            <th>Harga Jual per Satuan</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
@@ -75,6 +76,7 @@
                                 </td>
                                 <td><?php echo $isi['nama_supplier']; ?></td>
                                 <td><?php echo $isi['satuan']; ?></td>
+                                <td>Rp <?= number_format($isi['harga_beli'], 0, ',', '.') ?></td>
                                 <td>Rp <?= number_format($isi['harga_pasaran_per_satuan'], 0, ',', '.') ?></td>
                                 <td>
                                     <?php if ($isi['stok'] <=  $isi['batas_aman']) { ?>
@@ -100,6 +102,7 @@
                                             data-desc="<?php echo $isi['desc']; ?>"
                                             data-satuan="<?php echo $isi['satuan']; ?>"
                                             data-supplier="<?php echo $isi['supp_id']; ?>"
+                                            data-hargabeli="<?php echo $isi['harga_beli']; ?>"
                                             data-harga="<?php echo $isi['harga_pasaran_per_satuan']; ?>">Edit</button>
                                         <a href="fungsi/hapus/hapus.php?bahanbaku=hapus&id=<?php echo $isi['recid']; ?>"
                                             onclick="javascript:return confirm('Hapus Data Bahan baku ?');"><button
@@ -172,7 +175,14 @@
                                 </tr>
 
                                 <tr>
-                                    <td>Harga Pasaran per Satuan</td>
+                                    <td>Harga Beli per Satuan</td>
+                                    <td>
+                                        <input type="text" class="form-control" id="input-harga-beli-format" required>
+                                        <input type="hidden" name="harga_beli" id="input-harga-beli"> <!-- ini yang dikirim ke PHP -->
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Harga Jual per Satuan</td>
                                     <td>
                                         <input type="text" class="form-control" id="input-harga-format" required>
                                         <input type="hidden" name="harga" id="input-harga"> <!-- ini yang dikirim ke PHP -->
@@ -217,6 +227,7 @@
                         $('#btn-submit').html('<i class="fa fa-save"></i> Update Data');
 
                         var harga = data.harga.toString();
+                        var hargabeli = data.hargabeli.toString();
                         $('#edit-id').val(data.id);
                         $('#nama').val(data.nama).prop('readonly', true);
                         $('#desc').val(data.desc);
@@ -224,6 +235,8 @@
                         $('#supplier').val(data.supplier);
                         $('#input-harga-format').val(formatRupiah(harga));
                         $('#input-harga').val(harga);
+                        $('#input-harga-beli-format').val(formatRupiah(hargabeli));
+                        $('#input-harga-beli').val(hargabeli);
 
                         $('#myModal').modal('show');
                     } else {
@@ -238,6 +251,11 @@
                 $('#input-harga-format').on('input', function() {
                     let raw = $(this).val().replace(/[^0-9]/g, ''); // Ambil angka mentah
                     $('#input-harga').val(raw); // Simpan ke hidden input
+                    $(this).val(formatRupiah(raw)); // Tampilkan format Rupiah
+                });
+                $('#input-harga-beli-format').on('input', function() {
+                    let raw = $(this).val().replace(/[^0-9]/g, ''); // Ambil angka mentah
+                    $('#input-harga-beli').val(raw); // Simpan ke hidden input
                     $(this).val(formatRupiah(raw)); // Tampilkan format Rupiah
                 });
             });

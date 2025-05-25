@@ -14,6 +14,7 @@ if (!empty($_SESSION['admin'])) {
         $satuan   = htmlentities($_POST['satuan']);
         $supplier = htmlentities($_POST['supplier']);
         $harga    = intval($_POST['harga']);
+        $harga_beli    = intval($_POST['harga_beli']);
 
         // Siapkan data untuk binding (harus sesuai jumlah tanda tanya)
         $data = [
@@ -22,13 +23,14 @@ if (!empty($_SESSION['admin'])) {
             0, // stok default
             $satuan,
             $supplier,
+            $harga_beli,
             $harga
         ];
 
         // SQL: jumlah tanda tanya (?) harus sesuai jumlah elemen di $data (6)
         $sql = 'INSERT INTO tbl_bahan_baku 
-                (nama_bb, `desc`, stok, satuan, supp_id, harga_pasaran_per_satuan) 
-                VALUES (?, ?, ?, ?, ?, ?)';
+                (nama_bb, `desc`, stok, satuan, supp_id, harga_beli ,harga_pasaran_per_satuan) 
+                VALUES (?, ?, ?, ?, ?, ?, ?)';
 
         $row = $config->prepare($sql);
         $hasil = $row->execute($data);
@@ -109,9 +111,11 @@ if (!empty($_SESSION['admin'])) {
         $grade  = trim($_POST['grade']);
         $level  = trim($_POST['level']);
         $harga = intval($_POST['harga']);
+        $status = intval($_POST['inputaktif']);
+
         // Siapkan query insert
-        $stmt = $config->prepare("INSERT INTO tbl_product (nama_product, desc_product, grade, level, hargaPerTon) VALUES (?, ?, ?, ?, ?)");
-        $stmt->execute([$nama, $desc, $grade, $level, $harga]);
+        $stmt = $config->prepare("INSERT INTO tbl_product (nama_product, desc_product, grade, level, hargaPerTon, status) VALUES (?, ?, ?, ?, ?,?)");
+        $stmt->execute([$nama, $desc, $grade, $level, $harga, $status]);
         header("Location: ../../index.php?page=product&success=1");
     }
     if (!empty($_GET['uom'])) {
@@ -295,6 +299,7 @@ if (!empty($_SESSION['admin'])) {
             ':qty' => $input['qty'],
             ':total_harga' => $input['total_harga'],
             ':profit' => $input['profit'],
+            ':profit_bahanbaku' => $input['profit_bahanbaku'],
             ':pengiriman' => $input['pengiriman'],
             ':ongkir' => $input['ongkir'],
             ':penanggung_ongkir' => $input['penanggung_ongkir'],
@@ -315,13 +320,13 @@ if (!empty($_SESSION['admin'])) {
         ];
 
         $sql = "INSERT INTO transaksi_keluar (
-    tgl, no_invoice, hargaPerTon, ppn, qty, total_harga, profit,
+    tgl, no_invoice, hargaPerTon, ppn, qty, total_harga, profit, profit_bahanbaku, 
     pengiriman, ongkir, penanggung_ongkir, tanggal_sampai, tgl_jatuh_tempo,
     status_pembayaran, sisa_pembayaran, sudah_diterima, pakai_inventaris,
     inven_id, jml_inven, client_id, product_id, tgl_produksi,
     tmpt_produksi_id, createdby, modifiedby
 ) VALUES (
-    :tgl, :no_invoice, :harga, :ppn, :qty, :total_harga, :profit,
+    :tgl, :no_invoice, :harga, :ppn, :qty, :total_harga, :profit, :profit_bahanbaku,
     :pengiriman, :ongkir, :penanggung_ongkir, :tanggal_sampai, :tgl_jatuh_tempo,
     :status_pembayaran, :sisa_pembayaran, :sudah_diterima, :pakai_inventaris,
     :inven_id, :jml_inven, :client_id, :product_id, :tgl_produksi,
