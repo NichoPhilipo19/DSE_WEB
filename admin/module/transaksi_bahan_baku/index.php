@@ -1,7 +1,25 @@
 <?php
 // contoh ambil data dari database
-$transaksi = $lihat->transaksi_bahanbaku_list();
+// $transaksi = $lihat->transaksi_bahanbaku_list();
 $bahanbaku = $lihat->bahanbaku();
+
+// Tanggal default dari & sampai (1 bulan ke belakang)
+
+// Tanggal default: 1 bulan ke belakang
+$today = date('Y-m-d');
+$default_dari = date('Y-m-d', strtotime('-1 month', strtotime($today)));
+$tgl_dari = isset($_GET['tgl_dari']) ? $_GET['tgl_dari'] : $default_dari;
+$tgl_sampai = isset($_GET['tgl_sampai']) ? $_GET['tgl_sampai'] : $today;
+
+$page = isset($_GET['page_num']) ? (int)$_GET['page_num'] : 1;
+$limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
+$offset = ($page - 1) * $limit;
+
+// Ambil data
+$transaksi = $lihat->transaksi_bahanbaku_filtered($tgl_dari, $tgl_sampai, $offset, $limit);
+$totalData = $lihat->total_transaksi_bahanbaku_filtered($tgl_dari, $tgl_sampai);
+$totalPages = ceil($totalData / $limit);
+
 ?>
 <h4 class="mb-4">Transaksi Bahan Baku</h4>
 <?php if (isset($_GET['success']) && $_GET['success'] == "tambah") { ?>
@@ -41,6 +59,22 @@ $bahanbaku = $lihat->bahanbaku();
 </button>
 
 <!-- Tabel -->
+
+<form method="GET" class="form-inline mb-3">
+    <input type="hidden" name="page" value="transaksi_bahan_baku">
+    <label>Dari: </label>
+    <input type="date" name="tgl_dari" class="form-control mx-2" value="<?= $tgl_dari ?>">
+    <label>Sampai: </label>
+    <input type="date" name="tgl_sampai" class="form-control mx-2" value="<?= $tgl_sampai ?>">
+    <label>Per Halaman: </label>
+    <select name="limit" class="form-control mx-2">
+        <?php foreach ([10, 25, 50, 100] as $l): ?>
+            <option value="<?= $l ?>" <?= $limit == $l ? 'selected' : '' ?>><?= $l ?></option>
+        <?php endforeach ?>
+    </select>
+    <button type="submit" class="btn btn-primary">Filter</button>
+</form>
+
 <div class="card shadow">
     <div class="card-body table-responsive">
         <table class="table table-bordered table-hover">
@@ -170,6 +204,35 @@ $bahanbaku = $lihat->bahanbaku();
                 <?php endforeach ?>
             </tbody>
         </table>
+        <form method="GET" class="form-inline mt-3">
+            <input type="hidden" name="page" value="transaksi_bahan_baku">
+            <input type="hidden" name="tgl_dari" value="<?= $tgl_dari ?>">
+            <input type="hidden" name="tgl_sampai" value="<?= $tgl_sampai ?>">
+            <label>Data per halaman: </label>
+            <select name="limit" class="form-control mx-2" onchange="this.form.submit()">
+                <option <?= $limit == 10 ? 'selected' : '' ?>>10</option>
+                <option <?= $limit == 25 ? 'selected' : '' ?>>25</option>
+                <option <?= $limit == 50 ? 'selected' : '' ?>>50</option>
+            </select>
+        </form>
+
+        <!-- Navigasi halaman -->
+        <?php if ($totalPages > 1): ?>
+            <nav class="mt-2">
+                <ul class="pagination">
+                    <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                        <li class="page-item <?= $i == $page ? 'active' : '' ?>">
+                            <a class="page-link"
+                                href="?page=transaksi_bahan_baku&tgl_dari=<?= $tgl_dari ?>&tgl_sampai=<?= $tgl_sampai ?>&limit=<?= $limit ?>&page_num=<?= $i ?>">
+                                <?= $i ?>
+                            </a>
+                        </li>
+                    <?php endfor; ?>
+                </ul>
+            </nav>
+        <?php endif ?>
+
+
     </div>
 </div>
 <!-- Modal -->

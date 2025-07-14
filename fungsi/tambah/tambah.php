@@ -282,10 +282,10 @@ if (!empty($_SESSION['admin'])) {
     }
 
     if (!empty($_GET['jual']) && $_GET['jual'] === "tambah") {
-        echo "<pre>";
+        // echo "<pre>";
         $input = json_decode(file_get_contents("php://input"), true);
 
-        var_dump($input);
+        // var_dump($input);
         // Konversi format & bersihkan input
         $tgl = date('Y-m-d', strtotime($input['tgl']));
         $tgl_produksi = date('Y-m-d', strtotime($input['tgl_produksi']));
@@ -350,7 +350,136 @@ if (!empty($_SESSION['admin'])) {
                 ]);
             }
 
+            $parts = explode('/', $input['no_invoice']);
+
+            // Ambil bagian-bagian penting
+            $prefixStr = $parts[0]; // contoh: 0002
+            $kodeBulan = $parts[2]; // contoh: DSE-07
+            $tahun = intval($parts[3]);     // contoh: 2025
+            // 2. Ambil bulan dari kodeBulan
+            $kodeParts = explode('-', $kodeBulan);
+
+            $bulan = intval($kodeParts[1]); // '07' -> 7, '11' -> 11
+
+            // 3. Ambil angka prefix (tanpa nol di depan)
+            $lastNumber = intval($prefixStr); // '0002' -> 2
+            $data = [
+                htmlentities(strval($lastNumber)),
+                $bulan,
+                $tahun
+            ];
+            $updateNumSeq = "UPDATE number_sequences
+                SET last_number = ?
+                WHERE bulan = ?
+                AND tahun = ?
+            ";
+
+            $updateNumSeq = $config->prepare($updateNumSeq);
+
+            $hasil = $updateNumSeq->execute($data);
+            if ($hasil) {
+                echo '<script>alert("Data berhasil diubah!"); </script>';
+            } else {
+                $error = $row->errorInfo();
+                echo "Gagal update data: " . $error[2];
+            }
+
             echo json_encode(["success" => true]);
+        }
+    }
+    if (!empty($_GET['jual']) && $_GET['jual'] === "debug") {
+        $input = [
+            "tgl" => "14 July 2025, 21:08",
+            "no_invoice" => "0010/INV/DSE-07/2025",
+            "harga" => "Rp 1.000.000",
+            "ppn" => "33000",
+            "qty" => "0.3",
+            "total_harga" => 300000,
+            "pengiriman" => "Kurir Internal",
+            "ongkir" => "30000",
+            "penanggung_ongkir" => 0,
+            "tanggal_sampai" => "2025-07-18",
+            "tgl_jatuh_tempo" => "2025-07-18",
+            "status_pembayaran" => 0,
+            "sisa_pembayaran" => 100,
+            "sudah_diterima" => 0,
+            "pakai_inventaris" => 0,
+            "inven_id" => null,
+            "jml_inven" => null,
+            "client_id" => "1",
+            "product_id" => "1",
+            "tgl_produksi" => "14 July 2025, 21:08",
+            "tmpt_produksi_id" => "1",
+            "profit" => 290400,
+            "profit_bahanbaku" => 4500,
+            "createdby" => "admin",
+            "modifiedby" => "admin",
+            "dataBahanBaku" => [
+                [
+                    "recid" => 2,
+                    "total_kebutuhan" => 150,
+                    "hargamodal" => 4500,
+                    "hargabeli" => 2700
+                ],
+                [
+                    "recid" => 3,
+                    "total_kebutuhan" => 150,
+                    "hargamodal" => 5100,
+                    "hargabeli" => 2400
+                ]
+            ]
+        ];
+        var_dump($input);
+        $tgl = date('Y-m-d', strtotime($input['tgl']));
+        $tgl_produksi = date('Y-m-d', strtotime($input['tgl_produksi']));
+        $harga = str_replace(['Rp', '.', ','], '', $input['harga']);
+        $data = [
+            ':tgl' => $tgl,
+            ':no_invoice' => $input['no_invoice'],
+            ':harga' => $harga,
+            ':ppn' => $input['ppn'],
+            ':qty' => $input['qty'],
+            ':total_harga' => $input['total_harga'],
+            ':profit' => $input['profit'],
+            ':profit_bahanbaku' => $input['profit_bahanbaku'],
+            ':pengiriman' => $input['pengiriman'],
+            ':ongkir' => $input['ongkir'],
+            ':penanggung_ongkir' => $input['penanggung_ongkir'],
+            ':tanggal_sampai' => $input['tanggal_sampai'],
+            ':tgl_jatuh_tempo' => $input['tgl_jatuh_tempo'],
+            ':status_pembayaran' => $input['status_pembayaran'],
+            ':sisa_pembayaran' => $input['sisa_pembayaran'],
+            ':sudah_diterima' => $input['sudah_diterima'],
+            ':pakai_inventaris' => $input['pakai_inventaris'],
+            ':inven_id' => $input['inven_id'],
+            ':jml_inven' => $input['jml_inven'],
+            ':client_id' => $input['client_id'],
+            ':product_id' => $input['product_id'],
+            ':tgl_produksi' => $tgl_produksi,
+            ':tmpt_produksi_id' => $input['tmpt_produksi_id'],
+            ':createdby' => $input['createdby'],
+            ':modifiedby' => $input['modifiedby']
+        ];
+
+        $sql = "INSERT INTO transaksi_keluar (
+    tgl, no_invoice, hargaPerTon, ppn, qty, total_harga, profit, profit_bahanbaku, 
+    pengiriman, ongkir, penanggung_ongkir, tanggal_sampai, tgl_jatuh_tempo,
+    status_pembayaran, sisa_pembayaran, sudah_diterima, pakai_inventaris,
+    inven_id, jml_inven, client_id, product_id, tgl_produksi,
+    tmpt_produksi_id, createdby, modifiedby
+) VALUES (
+    :tgl, :no_invoice, :harga, :ppn, :qty, :total_harga, :profit, :profit_bahanbaku,
+    :pengiriman, :ongkir, :penanggung_ongkir, :tanggal_sampai, :tgl_jatuh_tempo,
+    :status_pembayaran, :sisa_pembayaran, :sudah_diterima, :pakai_inventaris,
+    :inven_id, :jml_inven, :client_id, :product_id, :tgl_produksi,
+    :tmpt_produksi_id, :createdby, :modifiedby
+)";
+
+        $row = $config->prepare($sql);
+        if (!$row->execute($data)) {
+            print_r($row->errorInfo()); // DEBUG error
+        } else {
+            echo '<script>alert("Data berhasil di input!"); </script>';
         }
     }
 }

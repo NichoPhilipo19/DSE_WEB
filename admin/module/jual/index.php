@@ -43,26 +43,30 @@
 								$hasil = $lihat->productList();
 								$no = 1;
 								foreach ($hasil as $isi) {
+									if ($isi['status'] == 0) {
+										$no++;
+									} else {
 								?>
- 								<tr data-id="<?= $no; ?>" data-harga="<?= $isi['hargaPerTon'] ?>" data-recid="<?= $isi['recid']; ?>">
- 									<td><?= $no; ?></td>
- 									<td><?= $isi['nama_product']; ?></td>
- 									<td><?= $isi['desc_product']; ?></td>
- 									<td><?= $isi['grade']; ?></td>
- 									<td><?= $isi['level']; ?></td>
- 									<td>Rp <?= number_format($isi['hargaPerTon'], 0, ',', '.') ?></td>
- 									<td>
- 										<?php if ($isi['status'] == 1) { ?>
- 											<button class="btn btn-warning btn-xs add-row-trigger"
- 												data-id="<?= $isi['recid']; ?>"
- 												data-nama="<?= $isi['nama_product']; ?>"
- 												data-desc="<?= $isi['desc_product']; ?>"
- 												data-grade="<?= $isi['grade']; ?>"
- 												data-level="<?= $isi['level']; ?>">Tambah ke transaksi</button>
- 										<?php } ?>
- 									</td>
- 								</tr>
+ 									<tr data-id="<?= $no; ?>" data-harga="<?= $isi['hargaPerTon'] ?>" data-recid="<?= $isi['recid']; ?>">
+ 										<td><?= $no; ?></td>
+ 										<td><?= $isi['nama_product']; ?></td>
+ 										<td><?= $isi['desc_product']; ?></td>
+ 										<td><?= $isi['grade']; ?></td>
+ 										<td><?= $isi['level']; ?></td>
+ 										<td>Rp <?= number_format($isi['hargaPerTon'], 0, ',', '.') ?></td>
+ 										<td>
+ 											<?php if ($isi['status'] == 1) { ?>
+ 												<button class="btn btn-warning btn-xs add-row-trigger"
+ 													data-id="<?= $isi['recid']; ?>"
+ 													data-nama="<?= $isi['nama_product']; ?>"
+ 													data-desc="<?= $isi['desc_product']; ?>"
+ 													data-grade="<?= $isi['grade']; ?>"
+ 													data-level="<?= $isi['level']; ?>">Tambah ke transaksi</button>
+ 											<?php } ?>
+ 										</td>
+ 									</tr>
  							<?php $no++;
+									}
 								} ?>
  						</tbody>
  					</table>
@@ -342,6 +346,7 @@
  								<td><?= $isi['harga_pasaran_per_satuan']; ?></td>
  								<td><?= $isi['kebutuhan']; ?></td>
  								<td><?= $isi['stok']; ?></td>
+ 								<!-- <td><?= $isi['bahanbaku_id']; ?></td> -->
  							</tr>
  						<?php $no++;
 							} ?>
@@ -800,13 +805,15 @@
  				const recid = cells[0]?.querySelector("input")?.value;
  				const nama_inven = cells[0]?.innerText.trim();
  				const jumlah = cells[1]?.querySelector("input")?.value;
+ 				if (checked == 1) {
+ 					data2.push({
+ 						checked: checked ? 1 : 0,
+ 						recid: recid,
+ 						nama_inven: nama_inven,
+ 						jumlah: jumlah,
+ 					});
 
- 				data2.push({
- 					checked: checked ? 1 : 0,
- 					recid: recid,
- 					nama_inven: nama_inven,
- 					jumlah: jumlah,
- 				});
+ 				}
  			});
 
  			const isPpnChecked = document.getElementById("use_ppn").checked;
@@ -846,8 +853,8 @@
  				sisa_pembayaran: 100,
  				sudah_diterima: 0,
  				pakai_inventaris: detailTambahan.use_inventaris,
- 				inven_id: data2[0].recid,
- 				jml_inven: data2[0].jumlah,
+ 				inven_id: data2.length ? data2[0].recid : null,
+ 				jml_inven: data2.length ? data2[0].jumlah : null,
  				client_id: detailTambahan.client_select,
  				product_id: data[0].recid,
  				tgl_produksi: detailTambahan.tgl_transaksi,
@@ -863,7 +870,7 @@
  				// detail: detailTambahan
 
  			};
- 			console.log(payload)
+ 			console.log(payload, data2)
  			fetch("fungsi/tambah/tambah.php?jual=tambah", {
  					method: "POST",
  					headers: {
@@ -873,7 +880,7 @@
  				})
  				.then(res => res.text())
  				.then(result => {
- 					alert("Invoice Telah Di buat!");
+ 					alert(payload.no_invoice + " Invoice Telah Di buat!");
  					// console.log(result);
  					window.location.href = 'index.php?page=penjualan';
  				})

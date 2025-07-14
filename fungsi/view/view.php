@@ -174,7 +174,7 @@ WHERE bb.stok <= u.batas_aman";
         // $tahun = 2025;
         $bulan = date("m");
         $tahun = date("Y");
-
+        // print_r($bulan);
         // $sql_seq = "SELECT * FROM number_sequences WHERE prefix = ? AND bulan = ? AND tahun = ? LIMIT 1";
         // $stmt_seq = $this->db->prepare($sql_seq);
         // $stmt_seq->execute([$prefix, $bulan, $tahun]);
@@ -204,17 +204,53 @@ WHERE bb.stok <= u.batas_aman";
             echo "Query gagal dijalankan.";
         }
     }
-    public function transaksi_bahanbaku_list()
+    // public function transaksi_bahanbaku_list()
+    // {
+    //     // $sql = "SELECT t.* FROM tbl_transaksi_bahanbaku as t";
+    //     $sql = "SELECT t.*, b.nama_bb, u.kode_uom FROM tbl_transaksi_bahanbaku as t
+    //             JOIN tbl_bahan_baku as b ON t.bahanbaku_id = b.recid
+    //             JOIN uom as u ON b.satuan = u.kode_uom ORDER BY t.tgl DESC";
+    //     $row = $this-> db -> prepare($sql);
+    //     $row -> execute();
+    //     $hasil = $row -> fetchAll();
+    //     return $hasil;
+    // }
+    function transaksi_bahanbaku_filtered($from, $to, $offset = 0, $limit = 10)
     {
-        // $sql = "SELECT t.* FROM tbl_transaksi_bahanbaku as t";
-        $sql = "SELECT t.*, b.nama_bb, u.kode_uom FROM tbl_transaksi_bahanbaku as t
-                JOIN tbl_bahan_baku as b ON t.bahanbaku_id = b.recid
-                JOIN uom as u ON b.satuan = u.kode_uom ORDER BY t.tgl DESC";
-        $row = $this-> db -> prepare($sql);
-        $row -> execute();
-        $hasil = $row -> fetchAll();
-        return $hasil;
+        // echo "<pre>";
+        // var_dump($from, $to, $offset, $limit);
+        $query = "SELECT t.*, b.nama_bb, u.kode_uom 
+                  FROM tbl_transaksi_bahanbaku AS t
+                  JOIN tbl_bahan_baku AS b ON t.bahanbaku_id = b.recid
+                  JOIN uom AS u ON b.satuan = u.kode_uom
+                  WHERE t.tgl BETWEEN :from AND :to
+                  ORDER BY t.tgl DESC
+                  LIMIT :offset, :limit";
+
+        $stmt = $this->db->prepare($query);
+        $stmt->bindValue(':from', $from);
+        $stmt->bindValue(':to', $to);
+        $stmt->bindValue(':offset', (int)$offset, PDO::PARAM_INT);
+        $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll();
     }
+
+    function total_transaksi_bahanbaku_filtered($from, $to)
+    {
+        $query = "SELECT COUNT(*) as total FROM tbl_transaksi_bahanbaku
+                  WHERE tgl BETWEEN :from AND :to";
+        $stmt = $this->db->prepare($query);
+        $stmt->bindValue(':from', $from);
+        $stmt->bindValue(':to', $to);
+        $stmt->execute();
+
+        $row = $stmt->fetch();
+
+        return $row['total'];
+    }
+
     public function getProductById($id)
     {
         $data = array();
@@ -242,7 +278,12 @@ WHERE bb.stok <= u.batas_aman";
         // echo "<pre>";
         $sql = "SELECT bb.recid,bb.nama_bb, bb.stok, bb.satuan,bb.harga_beli, bb.harga_pasaran_per_satuan, f.qty_per_ton, f.produk_id
                 FROM tbl_formulasi f
-                JOIN tbl_bahan_baku bb ON f.bahanbaku_id = bb.recid";
+                JOIN tbl_bahan_baku bb ON f.bahanbaku_id = bb.recid
+                JOIN tbl_product p ON f.produk_id = p.recid
+                WHERE p.status = 1
+                GROUP BY f.bahanbaku_id
+                ORDER BY bb.nama_bb
+                ";
 
         $stmt = $this->db->prepare($sql); // ✅ pakai $config, bukan $this
         $stmt->execute();
@@ -264,17 +305,264 @@ WHERE bb.stok <= u.batas_aman";
         return $data;
     }
 
-    public function transaksi_penjualan_list()
+    public function transaksi_penjualan_filter_limit($tgl_dari, $tgl_sampai, $limit, $offset)
     {
         $sql = "SELECT tk.*, c.nama_client 
-          FROM transaksi_keluar tk
-          LEFT JOIN tbl_client c ON tk.client_id = c.recid
-          ORDER BY tk.tgl DESC";
+                FROM transaksi_keluar tk
+                LEFT JOIN tbl_client c ON tk.client_id = c.recid
+                WHERE tk.tgl BETWEEN ? AND ?
+                ORDER BY tk.tgl DESC
+                LIMIT ? OFFSET ?";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(1, $tgl_dari);
+        $stmt->bindValue(2, $tgl_sampai);
+        $stmt->bindValue(3, (int)$limit, PDO::PARAM_INT);
+        $stmt->bindValue(4, (int)$offset, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
+
+    public function hitung_transaksi_penjualan_filter($tgl_dari, $tgl_sampai)
+    {
+        $sql = "SELECT COUNT(*) as total FROM transaksi_keluar WHERE tgl BETWEEN ? AND ?";
         $row = $this->db->prepare($sql);
-        $row->execute();
-        $hasil = $row->fetchAll();
+        $row->execute([$tgl_dari, $tgl_sampai]);
+        $result = $row->fetch();
+        return $result['total'];
+    }
+
+
+    public function transaksi_detail_penjualan($id)
+    {
+        // echo "<pre>";
+        $sql = "select *,(total_harga + ppn + 
+        CASE WHEN penanggung_ongkir = 1 THEN 0 ELSE ongkir END
+    ) AS total_bayar from transaksi_keluar where no_invoice = ? ";
+        //     $sql = "SELECT 
+        //     tk.*, -- semua field dari transaksi_keluar
+        //     ti.recid AS recid_inventaris,
+        //     ti.*, -- semua field dari tbl_inventaris
+        //     tc.recid AS recid_client,
+        //     tc.*, -- semua field dari tbl_client
+        //     tp.recid AS recid_product,
+        //     tp.recid AS recid_product, -- alias sesuai permintaan
+        //     tp.*, -- semua field dari tbl_product
+        //     ttp.recid AS recid_tmpt_produksi,
+        //     ttp.* -- semua field dari tbl_tmpt_produksi
+        // FROM 
+        //     transaksi_keluar tk
+        // LEFT JOIN tbl_inventaris ti ON tk.inven_id = ti.recid
+        // LEFT JOIN tbl_client tc ON tk.client_id = tc.recid
+        // LEFT JOIN tbl_product tp ON tk.product_id = tp.recid
+        // LEFT JOIN tbl_tmpt_produksi ttp ON tk.tmpt_produksi_id = ttp.recid
+        // WHERE tk.no_invoice = '0005/INV/DSE-07/2025'
+        // ";
+        $row = $this->db->prepare($sql);
+        $row->execute(array($id));
+        $hasil = $row->fetch();
+        // var_dump($hasil);
         return $hasil;
     }
+
+    public function detail_transaksi_product($id)
+    {
+
+        // echo "<pre>";
+        $sql = "SELECT 
+        tk.qty, tk.total_harga, -- semua field dari transaksi_keluar
+        tp.recid AS recid_product, -- alias sesuai permintaan
+        tp.* -- semua field dari tbl_product
+    FROM 
+        transaksi_keluar tk
+    LEFT JOIN tbl_product tp ON tk.product_id = tp.recid
+    WHERE tk.no_invoice = ?
+    ";
+        $row = $this->db->prepare($sql);
+        $row->execute(array($id));
+        $hasil = $row->fetchAll();
+
+        // print_r($hasil);
+        return $hasil;
+    }
+
+    public function total_penjualan_bulan_ini()
+    {
+        $bulan_ini = date('Y-m');
+        $sql = "SELECT SUM(hargaPerTon * qty) as total FROM transaksi_keluar WHERE DATE_FORMAT(tgl, '%Y-%m') = ?";
+        $query = $this->db->prepare($sql);
+        $query->execute([$bulan_ini]);
+        $data = $query->fetch();
+        return $data['total'] ?? 0;
+    }
+
+    public function total_produksi_bulan_ini()
+    {
+        $bulan_ini = date('Y-m');
+        $sql = "SELECT COUNT(*) as total, SUM(qty) as total_ton FROM transaksi_keluar WHERE DATE_FORMAT(tgl, '%Y-%m') = ?";
+        $query = $this->db->prepare($sql);
+        $query->execute([$bulan_ini]);
+        $data = $query->fetch();
+        return $data['total'] ?? 0;
+    }
+    public function total_produksi_bulan_ini_per_ton()
+    {
+        $bulan_ini = date('Y-m');
+        $sql = "SELECT SUM(qty) as total_ton FROM transaksi_keluar WHERE DATE_FORMAT(tgl, '%Y-%m') = ?";
+        $query = $this->db->prepare($sql);
+        $query->execute([$bulan_ini]);
+        $data = $query->fetch();
+        return $data['total_ton'] ?? 0;
+    }
+
+    public function jumlah_bahanbaku_kritis()
+    {
+        $sql = "SELECT COUNT(*) as total FROM tbl_bahan_baku AS bb JOIN uom AS u ON bb.satuan = u.kode_uom WHERE bb.stok <= u.batas_aman";
+        $query = $this->db->query($sql);
+        $data = $query->fetch();
+        return $data['total'] ?? 0;
+    }
+
+    public function jumlah_po_dalam_proses()
+    {
+        $sql = "SELECT COUNT(*) as total FROM tbl_transaksi_bahanbaku WHERE status = 1";
+        $query = $this->db->query($sql);
+        $data = $query->fetch();
+        return $data['total'] ?? 0;
+    }
+    public function grafikPerBulan()
+    {
+        // $sql = "SELECT DATE_FORMAT(tgl, '%Y-%m') AS bulan, SUM(hargaPerTon * qty) as total 
+        //       FROM transaksi_keluar 
+        //       GROUP BY bulan 
+        //       ORDER BY bulan ASC";
+        $tahun = date('Y'); // Tahun sekarang
+
+        $sql = "
+                  SELECT 
+                      bulan_list.bulan,
+                      COALESCE(SUM(t.hargaPerTon * t.qty),0) as total,
+                      COALESCE(SUM(t.qty), 0) AS total_qty
+                  FROM (
+                      SELECT '01' AS bulan_num, 'Jan' AS bulan
+                      UNION SELECT '02', 'Feb'
+                      UNION SELECT '03', 'Mar'
+                      UNION SELECT '04', 'Apr'
+                      UNION SELECT '05', 'Mei'
+                      UNION SELECT '06', 'Jun'
+                      UNION SELECT '07', 'Jul'
+                      UNION SELECT '08', 'Ags'
+                      UNION SELECT '09', 'Sep'
+                      UNION SELECT '10', 'Okt'
+                      UNION SELECT '11', 'Nov'
+                      UNION SELECT '12', 'Des'
+                  ) AS bulan_list
+                  LEFT JOIN transaksi_keluar t
+                      ON MONTH(t.tgl) = bulan_list.bulan_num AND YEAR(t.tgl) = '$tahun'
+                  GROUP BY bulan_list.bulan_num
+                  ORDER BY bulan_list.bulan_num
+              ";
+        $query = $this->db->query($sql);
+        $rows = $query->fetchAll();
+        $data = [];
+        foreach ($rows as $row) {
+            $data[] = [
+                'bulan' => $row['bulan'],
+                'total' => (int)$row['total'],
+                'total_qty' => ($row['total_qty'] ?? 0)
+            ];
+        }
+        return $data;
+    }
+
+    public function total_ppn_bulan_ini()
+    {
+        $bulan_ini = date('Y-m');
+        $sql = "SELECT SUM(ppn) as total FROM transaksi_keluar WHERE DATE_FORMAT(tgl, '%Y-%m') = ?";
+        $query = $this->db->prepare($sql);
+        $query->execute([$bulan_ini]);
+        $data = $query->fetch();
+        return $data['total'] ?? 0;
+    }
+    public function jumlah_ppn_bulan_ini()
+    {
+        $bulan_ini = date('Y-m');
+        $sql = "SELECT COUNT(*) as total FROM transaksi_keluar WHERE ppn > 0 AND DATE_FORMAT(tgl, '%Y-%m') = ?";
+        $query = $this->db->prepare($sql);
+        $query->execute([$bulan_ini]);
+        $data = $query->fetch();
+        return $data['total'] ?? 0;
+    }
+    public function jumlah_bulan_ini()
+    {
+        $bulan_ini = date('Y-m');
+        $sql = "SELECT COUNT(*) as total FROM transaksi_keluar WHERE DATE_FORMAT(tgl, '%Y-%m') = ?";
+        $query = $this->db->prepare($sql);
+        $query->execute([$bulan_ini]);
+        $data = $query->fetch();
+        return $data['total'] ?? 0;
+    }
+
+    public function total_ongkir_bulan_ini()
+    {
+        $bulan_ini = date('Y-m');
+        $sql = "SELECT SUM(ongkir) as total_ongkir FROM transaksi_keluar WHERE DATE_FORMAT(tgl, '%Y-%m') = ?";
+        $query = $this->db->prepare($sql);
+        $query->execute([$bulan_ini]);
+        $data = $query->fetch();
+        return $data['total_ongkir'] ?? 0;
+    }
+
+    public function jumlah_ongkir_gratis()
+    {
+        $bulan_ini = date('Y-m');
+        $sql = "SELECT COUNT(*) as total FROM transaksi_keluar WHERE penanggung_ongkir = 1 AND DATE_FORMAT(tgl, '%Y-%m') = ?";
+        $query = $this->db->prepare($sql);
+        $query->execute([$bulan_ini]);
+        $data = $query->fetch();
+        return $data['total'] ?? 0;
+    }
+
+    public function jumlah_ongkir_bulan_ini()
+    {
+        $bulan_ini = date('Y-m');
+        $sql = "SELECT COUNT(*) as total FROM transaksi_keluar WHERE ongkir IS NOT NULL AND DATE_FORMAT(tgl, '%Y-%m') = ?";
+        $query = $this->db->prepare($sql);
+        $query->execute([$bulan_ini]);
+        $data = $query->fetch();
+        return $data['total'] ?? 0;
+    }
+
+    public function pembayaran_jatuh_tempo()
+    {
+        // $today = date('Y-m-d');
+        // $next7 = date('Y-m-d', strtotime('+7 days'));
+
+        $sql = "SELECT 
+    tk.client_id,
+    tc.nama_client,
+    
+    SUM(CASE WHEN tk.tgl_jatuh_tempo < CURDATE() THEN 1 ELSE 0 END) AS total_jatuh_tempo,
+    SUM(CASE WHEN tk.tgl_jatuh_tempo BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 7 DAY) THEN 1 ELSE 0 END) AS total_segera_jatuh_tempo,
+
+    SUM(CASE WHEN tk.tgl_jatuh_tempo < CURDATE() THEN tk.total_harga ELSE 0 END) AS tagihan_jatuh_tempo,
+    SUM(CASE WHEN tk.tgl_jatuh_tempo BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 7 DAY) THEN tk.total_harga ELSE 0 END) AS tagihan_segera_jatuh_tempo
+
+FROM transaksi_keluar tk
+JOIN tbl_client tc ON tk.client_id = tc.recid
+WHERE 
+    tk.tgl_jatuh_tempo <= DATE_ADD(CURDATE(), INTERVAL 7 DAY)
+    AND tk.status_pembayaran = 0
+GROUP BY tk.client_id
+ORDER BY total_jatuh_tempo DESC, total_segera_jatuh_tempo DESC";
+
+        $query = $this->db->prepare($sql);
+        $query->execute();
+        $data = $query->fetchAll();
+        return $data;
+    }
+
+
 
 
 

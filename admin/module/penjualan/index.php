@@ -1,6 +1,6 @@
 <?php
 // contoh ambil data dari database
-$transaksi = $lihat->transaksi_penjualan_list();
+// $transaksi = $lihat->transaksi_penjualan_list();
 $bahanbaku = $lihat->bahanbaku();
 ?>
 <h4 class="mb-4">Transaksi Penjualan</h4>
@@ -20,6 +20,48 @@ $bahanbaku = $lihat->bahanbaku();
     </div>
 <?php } ?>
 
+<?php
+// Default tanggal
+$today = date('Y-m-d');
+$oneMonthAgo = date('Y-m-d', strtotime('-1 month'));
+
+// --- Ambil tanggal filter ---
+$tgl_dari = $_GET['tgl_dari'] ?? $oneMonthAgo;
+$tgl_sampai = $_GET['tgl_sampai'] ?? $today;
+
+// --- Jumlah per halaman ---
+$limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
+$page = isset($_GET['page_num']) ? (int)$_GET['page_num'] : 1;
+$offset = ($page - 1) * $limit;
+
+// --- Hitung total data ---
+$totalData = $lihat->hitung_transaksi_penjualan_filter($tgl_dari, $tgl_sampai);
+
+// --- Hitung total halaman ---
+$totalPages = ceil($totalData / $limit);
+
+// --- Ambil data terbatas ---
+$transaksi = $lihat->transaksi_penjualan_filter_limit($tgl_dari, $tgl_sampai, $limit, $offset);
+// echo "Limit: $limit | Offset: $offset | Page: $page<br>";
+
+?>
+
+<form method="GET" class="mb-3">
+    <input type="hidden" name="page" value="penjualan">
+    <div class="form-row">
+        <div class="col-md-3">
+            <label>Dari Tanggal</label>
+            <input type="date" name="tgl_dari" class="form-control" value="<?= $tgl_dari ?>">
+        </div>
+        <div class="col-md-3">
+            <label>Sampai Tanggal</label>
+            <input type="date" name="tgl_sampai" class="form-control" value="<?= $tgl_sampai ?>">
+        </div>
+        <div class="col-md-2 align-self-end">
+            <button type="submit" class="btn btn-primary btn-block">Filter</button>
+        </div>
+    </div>
+</form>
 
 <!-- Tabel -->
 <div class="card shadow">
@@ -31,6 +73,7 @@ $bahanbaku = $lihat->bahanbaku();
                     <th>No Invoice</th>
                     <th>Client</th>
                     <th>Tanggal</th>
+                    <th>Qty (Ton)</th>
                     <th>Total</th>
                     <th>Status</th>
                     <th>Aksi</th>
@@ -61,6 +104,7 @@ $bahanbaku = $lihat->bahanbaku();
                         <td><?= $row['no_invoice'] ?></td>
                         <td><?= $row['nama_client'] ?></td>
                         <td><?= date('d-m-Y', strtotime($row['tgl'])) ?></td>
+                        <td><?= $row['qty'] ?></td>
                         <td>Rp <?= number_format($row['total_harga']) ?></td>
                         <td><?= $row['status_pembayaran'] == 1 ? 'Lunas' : 'Belum Lunas' ?></td>
 
@@ -148,6 +192,33 @@ $bahanbaku = $lihat->bahanbaku();
                 <?php endforeach ?>
             </tbody>
         </table>
+        <!-- Pilihan jumlah data per halaman -->
+        <form method="GET" class="form-inline mt-3">
+            <input type="hidden" name="page" value="penjualan">
+            <input type="hidden" name="tgl_dari" value="<?= $tgl_dari ?>">
+            <input type="hidden" name="tgl_sampai" value="<?= $tgl_sampai ?>">
+            <label>Data per halaman: </label>
+            <select name="limit" class="form-control mx-2" onchange="this.form.submit()">
+                <option <?= $limit == 10 ? 'selected' : '' ?>>10</option>
+                <option <?= $limit == 25 ? 'selected' : '' ?>>25</option>
+                <option <?= $limit == 50 ? 'selected' : '' ?>>50</option>
+            </select>
+        </form>
+
+        <!-- Navigasi halaman -->
+        <nav class="mt-2">
+            <ul class="pagination">
+                <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                    <li class="page-item <?= $i == $page ? 'active' : '' ?>">
+                        <a class="page-link"
+                            href="?page=penjualan&tgl_dari=<?= $tgl_dari ?>&tgl_sampai=<?= $tgl_sampai ?>&limit=<?= $limit ?>&page_num=<?= $i ?>">
+                            <?= $i ?>
+                        </a>
+                    </li>
+                <?php endfor; ?>
+            </ul>
+        </nav>
+
     </div>
 </div>
 

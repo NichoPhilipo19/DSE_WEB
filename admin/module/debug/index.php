@@ -25,7 +25,10 @@
 </head>
 
 <body>
-
+    <form action="fungsi/tambah/tambah.php?jual=debug" method="POST">
+        <input type="text" name="tes" value="0004/INV/DSE-07/2025">
+        <button class="btn btn-warning btn-xs add-row-trigger" id="debug">Tambah ke transaksi</button>
+    </form>
     <h3>Table 1</h3>
     <table id="table1">
         <thead>
@@ -73,6 +76,27 @@
     <script>
         $(document).ready(function() {
             // Ketika tombol "Tambah" di Table 1 diklik
+            $('#debug').on('click', function() {
+                const payload = {
+                    no_invoice: "0004/INV/DSE-07/2025",
+                };
+                fetch("fungsi/tambah/tambah.php?jual=debug", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(payload)
+                })
+                // .then(res => res.text())
+                // .then(result => {
+                //     alert("Invoice Telah Di buat!");
+                //     // console.log(result);
+                //     window.location.href = 'index.php?page=penjualan';
+                // })
+                // .catch(error => {
+                //     console.error("Gagal:", error);
+                // });
+            })
             $('#table1').on('click', '.add-row-trigger', function() {
                 var $row = $(this).closest('tr');
                 var id = $row.data('id');
