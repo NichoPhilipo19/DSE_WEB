@@ -562,8 +562,115 @@ ORDER BY total_jatuh_tempo DESC, total_segera_jatuh_tempo DESC";
         return $data;
     }
 
+    public function laporan_penjualan($tgl_dari = null, $tgl_sampai = null, $client_id = null, $status_bayar = null)
+    {
+        $sql = "SELECT tk.*, tc.nama_client 
+                FROM transaksi_keluar tk
+                LEFT JOIN tbl_client tc ON tk.client_id = tc.recid
+                WHERE 1=1";
+
+        $params = [];
+
+        // Filter tanggal
+        if (!empty($tgl_dari) && !empty($tgl_sampai)) {
+            $sql .= " AND DATE(tk.tgl) BETWEEN ? AND ?";
+            $params[] = $tgl_dari;
+            $params[] = $tgl_sampai;
+        }
+
+        // Filter client (opsional)
+        if (!empty($client_id)) {
+            $sql .= " AND tk.client_id = ?";
+            $params[] = $client_id;
+        }
+
+        // Filter status bayar (opsional)
+        if ($status_bayar === 'lunas') {
+            $sql .= " AND tk.status_pembayaran = 1";
+        } elseif ($status_bayar === 'belum') {
+            $sql .= " AND tk.status_pembayaran = 0";
+        }
+
+        $sql .= " ORDER BY tk.tgl DESC";
+
+        $query = $this->db->prepare($sql);
+        $query->execute($params);
+        $rows = $query->fetchAll(PDO::FETCH_ASSOC);
+        $data = [];
+        foreach ($rows as $row) {
+            // var_dump(json_encode($row));
+            $data[] = array_merge(
+                $row,
+                [
+                    'status_bayar' => $row['status_pembayaran'] == 1 ? "Lunas" : "Belum Lunas",
+                    'jatuh_tempo' => $row['status_pembayaran'] == 1 ? "-" : date(
+                        'd-m-Y',
+                        strtotime($row['tgl_jatuh_tempo'])
+                    )
+                ]
+            );
+        }
+
+        return $data;
+    }
+    public function laporan_penjualan_print($tgl_dari = null, $tgl_sampai = null, $client_id = null, $status_bayar = null)
+    {
+        // echo "<pre>";
+        $method = $this->laporan_penjualan($tgl_dari, $tgl_sampai, $client_id, $status_bayar);
+        // var_dump($method)
+        return $method;
+    }
+
+    public function laporan_pembelian_bahan_baku($tgl_dari = null, $tgl_sampai = null, $status_bayar = null)
+    {
+        // echo "<pre>";
+        // var_dump("bisa");
+        $sql = "SELECT sp.nama_supplier,t.*, b.nama_bb, u.kode_uom FROM tbl_transaksi_bahanbaku as t
+                    JOIN tbl_bahan_baku as b ON t.bahanbaku_id = b.recid
+                    JOIN uom as u ON b.satuan = u.kode_uom 
+                    JOIN tbl_supplier as sp ON b.supp_id = sp.recid 
+                    WHERE 1=1";
+
+        $params = [];
+
+        // Filter tanggal
+        if (!empty($tgl_dari) && !empty($tgl_sampai)) {
+            $sql .= " AND DATE(t.tgl) BETWEEN ? AND ?";
+            $params[] = $tgl_dari;
+            $params[] = $tgl_sampai;
+        }
 
 
+        // Filter status bayar (opsional)
+        if ($status_bayar === 'lunas') {
+            $sql .= " AND t.status_bayar = 1";
+        } elseif ($status_bayar === 'belum') {
+            $sql .= " AND t.status_bayar = 0";
+        }
+
+        $sql .= " ORDER BY t.tgl DESC";
+        $query = $this->db->prepare($sql);
+        $query->execute($params);
+        $rows = $query->fetchAll(PDO::FETCH_ASSOC);
+
+        // var_dump($sql);
+        // var_dump($rows);
+        $data = [];
+        foreach ($rows as $row) {
+            // var_dump(json_encode($row));
+            $status = ($row['status'] == 0 ? "Draft" : ($row['status'] == 1 ? "In Order" : "Finish"));
+            $status_pembayaran = $row['bukti_file'] != NULL ? "Lunas" : "Belum Bayar";
+            $data[] = array_merge(
+                $row,
+                [
+                    'status' => $status,
+                    'status_pembayaran' => $status_pembayaran,
+
+                ]
+            );
+        }
+        return $data;
+    }
 
 
 
