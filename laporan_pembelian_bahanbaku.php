@@ -7,7 +7,7 @@ $lihat = new view($config);
 ?>
 
 <head>
-    <title>Print Laporan Penjualan</title>
+    <title>Print Laporan Pembelian Bahan Baku</title>
     <style>
         @media print {
             @page {

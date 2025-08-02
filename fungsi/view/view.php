@@ -13,9 +13,9 @@ class view
     public function supplier()
     {
         $sql = "select * from tbl_supplier;";
-        $row = $this-> db -> prepare($sql);
-        $row -> execute();
-        $hasil = $row -> fetchAll();
+        $row = $this->db->prepare($sql);
+        $row->execute();
+        $hasil = $row->fetchAll();
         return $hasil;
     }
 
@@ -31,7 +31,7 @@ class view
         JOIN tbl_supplier s ON bb.supp_id = s.recid
         JOIN uom u ON bb.satuan = u.kode_uom
         ORDER BY bb.recid ASC;";
-        
+
         $row = $this->db->prepare($sql);
         $row->execute();
         $hasil = $row->fetchAll();
@@ -50,11 +50,11 @@ WHERE bb.stok <= u.batas_aman";
         // print_r(($r));
         return $r;
     }
-    
-    
+
+
     public function bahanbaku_edit($id)
     {
-    $sql = "select 
+        $sql = "select 
         bb.recid,
         bb.nama_bb,
         bb.`desc`,
@@ -65,27 +65,27 @@ WHERE bb.stok <= u.batas_aman";
         from tbl_bahan_baku bb
         join tbl_supplier s ON bb.supp_id = s.recid 
         where bb.recid =?;";
-        $row = $this-> db -> prepare($sql);
-        $row -> execute(array($id));
-        $hasil = $row -> fetch();
+        $row = $this->db->prepare($sql);
+        $row->execute(array($id));
+        $hasil = $row->fetch();
         return $hasil;
     }
 
     public function clietList()
     {
         $sql = "SELECT * FROM tbl_client";
-        $row = $this-> db -> prepare($sql);
-        $row -> execute();
-        $hasil = $row -> fetchAll();
+        $row = $this->db->prepare($sql);
+        $row->execute();
+        $hasil = $row->fetchAll();
         return $hasil;
     }
-    
+
     public function clientList_edit($id)
     {
         $sql = "select * from tbl_client where recid =?;";
-        $row = $this-> db -> prepare($sql);
-        $row -> execute(array($id));
-        $hasil = $row -> fetch();
+        $row = $this->db->prepare($sql);
+        $row->execute(array($id));
+        $hasil = $row->fetch();
         return $hasil;
     }
 
@@ -103,51 +103,51 @@ WHERE bb.stok <= u.batas_aman";
         tbl_relasi_inven r
     JOIN 
         tbl_inventaris i ON r.inven_id = i.recid WHERE client_id =? ";
-        $row = $this-> db -> prepare($sql);
-        $row -> execute(array($id));
-        $hasil = $row -> fetchAll();
+        $row = $this->db->prepare($sql);
+        $row->execute(array($id));
+        $hasil = $row->fetchAll();
         return $hasil;
     }
 
     public function invenList()
     {
         $sql = "SELECT * FROM tbl_inventaris";
-        $row = $this-> db -> prepare($sql);
-        $row -> execute();
-        $hasil = $row -> fetchAll();
+        $row = $this->db->prepare($sql);
+        $row->execute();
+        $hasil = $row->fetchAll();
         return $hasil;
     }
 
     public function productList()
     {
         $sql = "SELECT * FROM tbl_product";
-        $row = $this-> db -> prepare($sql);
-        $row -> execute();
-        $hasil = $row -> fetchAll();
+        $row = $this->db->prepare($sql);
+        $row->execute();
+        $hasil = $row->fetchAll();
         return $hasil;
     }
     public function supplierList()
     {
         $sql = "SELECT * FROM tbl_supplier";
-        $row = $this-> db -> prepare($sql);
-        $row -> execute();
-        $hasil = $row -> fetchAll();
+        $row = $this->db->prepare($sql);
+        $row->execute();
+        $hasil = $row->fetchAll();
         return $hasil;
     }
     public function tmptProduksiList()
     {
         $sql = "SELECT * FROM tbl_tmpt_produksi";
-        $row = $this-> db -> prepare($sql);
-        $row -> execute();
-        $hasil = $row -> fetchAll();
+        $row = $this->db->prepare($sql);
+        $row->execute();
+        $hasil = $row->fetchAll();
         return $hasil;
     }
     public function userList()
     {
         $sql = "SELECT * FROM tbl_user";
-        $row = $this-> db -> prepare($sql);
-        $row -> execute();
-        $hasil = $row -> fetchAll();
+        $row = $this->db->prepare($sql);
+        $row->execute();
+        $hasil = $row->fetchAll();
         return $hasil;
     }
     public function uomList()
@@ -161,9 +161,9 @@ WHERE bb.stok <= u.batas_aman";
     public function numberSequence()
     {
         $sql = "SELECT * FROM number_sequences";
-        $row = $this-> db -> prepare($sql);
-        $row -> execute();
-        $hasil = $row -> fetchAll();
+        $row = $this->db->prepare($sql);
+        $row->execute();
+        $hasil = $row->fetchAll();
         return $hasil;
     }
     public function numberSequenceForTransaksi()
@@ -613,6 +613,7 @@ ORDER BY total_jatuh_tempo DESC, total_segera_jatuh_tempo DESC";
 
         return $data;
     }
+
     public function laporan_penjualan_print($tgl_dari = null, $tgl_sampai = null, $client_id = null, $status_bayar = null)
     {
         // echo "<pre>";
@@ -672,15 +673,144 @@ ORDER BY total_jatuh_tempo DESC, total_segera_jatuh_tempo DESC";
         return $data;
     }
 
+    public function laporan_stok_bahan_baku()
+    {
+
+        // echo "<pre>";
+        $sql = "SELECT 
+            bb.*,
+            u.kode_uom,
+            u.nama_uom,
+            u.batas_aman,
+            s.nama_supplier
+        FROM tbl_bahan_baku bb
+        JOIN tbl_supplier s ON bb.supp_id = s.recid
+        JOIN uom u ON bb.satuan = u.kode_uom
+        ORDER BY bb.recid ASC;";
+
+        $row = $this->db->prepare($sql);
+        $row->execute();
+        $hasil = $row->fetchAll();
+
+        // var_dump($hasil);
+        return $hasil;
+    }
+
+    public function laporan_uang_jalan_supir($tgl_dari = null, $tgl_sampai = null)
+    {
+        $sql = "SELECT 
+    tk.no_invoice,
+    tk.tgl,
+    tk.pengiriman,
+    tk.ongkir,
+    tk.penanggung_ongkir,
+    tk.total_harga,
+    tk.status_pembayaran,
+    tc.nama_client
+FROM transaksi_keluar tk
+JOIN tbl_client tc ON tc.recid = tk.client_id
+
+                WHERE 1=1";
+
+        $params = [];
+
+        // Filter tanggal
+        if (!empty($tgl_dari) && !empty($tgl_sampai)) {
+            $sql .= " AND DATE(tk.tgl) BETWEEN ? AND ?";
+            $params[] = $tgl_dari;
+            $params[] = $tgl_sampai;
+        }
+
+        $sql .= " ORDER BY tk.tgl DESC";
+
+        $query = $this->db->prepare($sql);
+        $query->execute($params);
+        $rows = $query->fetchAll(PDO::FETCH_ASSOC);
+
+        return $rows;
+    }
+
+    public function laporan_pemasukan_pengeluaran($tgl_dari = null, $tgl_sampai = null)
+    {
+        // echo "<pre>";
+        // print_r($type);
+        $wherePenjualan1 = "tk.tgl BETWEEN ? AND ?";
+        $wherePembelian2 = "tb.tgl BETWEEN ? AND ?";
+        $params = [$tgl_dari, $tgl_sampai, $tgl_dari, $tgl_sampai];
+
+
+        $sql = "
+            SELECT * FROM (
+    -- PENJUALAN
+    SELECT 
+        tk.tgl AS tanggal, 
+        tk.no_invoice AS nomor,
+        'Penjualan' AS tipe, 
+        tk.pengiriman AS keterangan, 
+        SUM(tk.hargaPerTon * tk.qty) AS kredit,
+        0 AS debit,
+        tc.nama_client AS nama
+    FROM transaksi_keluar tk
+    JOIN tbl_client tc ON tc.recid = tk.client_id
+    WHERE $wherePenjualan1
+    GROUP BY tk.tgl, tk.no_invoice, tk.pengiriman, tc.nama_client
+
+    UNION ALL
+
+    -- PEMBELIAN
+    SELECT 
+        tb.tgl AS tanggal,
+        tb.no_po AS nomor,
+        'Pembelian' AS tipe,
+        tb.pengiriman AS keterangan,
+        0 AS kredit,
+        tb.jumlah_bayar AS debit,
+        ts.nama_supplier AS nama
+    FROM tbl_transaksi_bahanbaku tb
+    JOIN tbl_supplier ts ON ts.recid = tb.supp_id
+    WHERE $wherePembelian2
+) AS transaksi
+ORDER BY tanggal ASC
+
+        ";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        // print_r($rows);
+        // return $rows;
+
+        $data = [];
+        foreach ($rows as $row) {
+
+            if ($row['tipe'] == "Pembelian") {
+                $data[] = array_merge(
+                    $row,
+                    [
+                        'keterangan_fix' => "Pembelian dari Supplier " . $row["nama"],
+                    ]
+                );
+            } else {
+                $data[] = array_merge(
+                    $row,
+                    [
+                        'keterangan_fix' => "Penjualan ke Client " . $row["nama"],
+                    ]
+                );
+            }
+        }
+        return $data;
+    }
+
 
 
     public function member()
     {
         $sql = "select member.*, login.*
                 from member inner join login on member.id_member = login.id_member";
-        $row = $this-> db -> prepare($sql);
-        $row -> execute();
-        $hasil = $row -> fetchAll();
+        $row = $this->db->prepare($sql);
+        $row->execute();
+        $hasil = $row->fetchAll();
         return $hasil;
     }
 
@@ -689,27 +819,27 @@ ORDER BY total_jatuh_tempo DESC, total_segera_jatuh_tempo DESC";
         $sql = "select member.*, login.*
                 from member inner join login on member.id_member = login.id_member
                 where member.id_member= ?";
-        $row = $this-> db -> prepare($sql);
-        $row -> execute(array($id));
-        $hasil = $row -> fetch();
+        $row = $this->db->prepare($sql);
+        $row->execute(array($id));
+        $hasil = $row->fetch();
         return $hasil;
     }
 
     public function toko()
     {
         $sql = "select*from toko where id_toko='1'";
-        $row = $this-> db -> prepare($sql);
-        $row -> execute();
-        $hasil = $row -> fetch();
+        $row = $this->db->prepare($sql);
+        $row->execute();
+        $hasil = $row->fetch();
         return $hasil;
     }
 
     public function kategori()
     {
         $sql = "select*from kategori";
-        $row = $this-> db -> prepare($sql);
-        $row -> execute();
-        $hasil = $row -> fetchAll();
+        $row = $this->db->prepare($sql);
+        $row->execute();
+        $hasil = $row->fetchAll();
         return $hasil;
     }
 
@@ -718,9 +848,9 @@ ORDER BY total_jatuh_tempo DESC, total_segera_jatuh_tempo DESC";
         $sql = "select barang.*, kategori.id_kategori, kategori.nama_kategori
                 from barang inner join kategori on barang.id_kategori = kategori.id_kategori 
                 ORDER BY id DESC";
-        $row = $this-> db -> prepare($sql);
-        $row -> execute();
-        $hasil = $row -> fetchAll();
+        $row = $this->db->prepare($sql);
+        $row->execute();
+        $hasil = $row->fetchAll();
         return $hasil;
     }
 
@@ -730,9 +860,9 @@ ORDER BY total_jatuh_tempo DESC, total_segera_jatuh_tempo DESC";
                 from barang inner join kategori on barang.id_kategori = kategori.id_kategori 
                 where stok <= 3 
                 ORDER BY id DESC";
-        $row = $this-> db -> prepare($sql);
-        $row -> execute();
-        $hasil = $row -> fetchAll();
+        $row = $this->db->prepare($sql);
+        $row->execute();
+        $hasil = $row->fetchAll();
         return $hasil;
     }
 
@@ -752,29 +882,29 @@ ORDER BY total_jatuh_tempo DESC, total_segera_jatuh_tempo DESC";
         $sql = "select barang.*, kategori.id_kategori, kategori.nama_kategori
                 from barang inner join kategori on barang.id_kategori = kategori.id_kategori
                 where id_barang like '%$cari%' or nama_barang like '%$cari%' or merk like '%$cari%'";
-        $row = $this-> db -> prepare($sql);
-        $row -> execute();
-        $hasil = $row -> fetchAll();
+        $row = $this->db->prepare($sql);
+        $row->execute();
+        $hasil = $row->fetchAll();
         return $hasil;
     }
 
     public function barang_id()
     {
         $sql = 'SELECT * FROM barang ORDER BY id DESC';
-        $row = $this-> db -> prepare($sql);
-        $row -> execute();
-        $hasil = $row -> fetch();
+        $row = $this->db->prepare($sql);
+        $row->execute();
+        $hasil = $row->fetch();
 
         $urut = substr($hasil['id_barang'], 2, 3);
         $tambah = (int) $urut + 1;
         if (strlen($tambah) == 1) {
-            $format = 'BR00'.$tambah.'';
+            $format = 'BR00' . $tambah . '';
         } elseif (strlen($tambah) == 2) {
-            $format = 'BR0'.$tambah.'';
+            $format = 'BR0' . $tambah . '';
         } else {
             $ex = explode('BR', $hasil['id_barang']);
             $no = (int) $ex[1] + 1;
-            $format = 'BR'.$no.'';
+            $format = 'BR' . $no . '';
         }
         return $format;
     }
@@ -782,27 +912,27 @@ ORDER BY total_jatuh_tempo DESC, total_segera_jatuh_tempo DESC";
     public function kategori_edit($id)
     {
         $sql = "select*from kategori where id_kategori=?";
-        $row = $this-> db -> prepare($sql);
-        $row -> execute(array($id));
-        $hasil = $row -> fetch();
+        $row = $this->db->prepare($sql);
+        $row->execute(array($id));
+        $hasil = $row->fetch();
         return $hasil;
     }
 
     public function kategori_row()
     {
         $sql = "select*from kategori";
-        $row = $this-> db -> prepare($sql);
-        $row -> execute();
-        $hasil = $row -> rowCount();
+        $row = $this->db->prepare($sql);
+        $row->execute();
+        $hasil = $row->rowCount();
         return $hasil;
     }
 
     public function barang_row()
     {
         $sql = "select*from tbl_bahan_baku";
-        $row = $this-> db -> prepare($sql);
-        $row -> execute();
-        $hasil = $row -> rowCount();
+        $row = $this->db->prepare($sql);
+        $row->execute();
+        $hasil = $row->rowCount();
         return $hasil;
     }
     // public function barang_row()
@@ -816,55 +946,55 @@ ORDER BY total_jatuh_tempo DESC, total_segera_jatuh_tempo DESC";
 
     public function barang_stok_row()
     {
-        $sql ="SELECT SUM(stok) as jml FROM barang";
-        $row = $this-> db -> prepare($sql);
-        $row -> execute();
-        $hasil = $row -> fetch();
+        $sql = "SELECT SUM(stok) as jml FROM barang";
+        $row = $this->db->prepare($sql);
+        $row->execute();
+        $hasil = $row->fetch();
         return $hasil;
     }
 
     public function barang_beli_row()
     {
-        $sql ="SELECT SUM(harga_beli) as beli FROM barang";
-        $row = $this-> db -> prepare($sql);
-        $row -> execute();
-        $hasil = $row -> fetch();
+        $sql = "SELECT SUM(harga_beli) as beli FROM barang";
+        $row = $this->db->prepare($sql);
+        $row->execute();
+        $hasil = $row->fetch();
         return $hasil;
     }
 
     public function jual_row()
     {
-        $sql ="SELECT SUM(jumlah) as stok FROM nota";
-        $row = $this-> db -> prepare($sql);
-        $row -> execute();
-        $hasil = $row -> fetch();
+        $sql = "SELECT SUM(jumlah) as stok FROM nota";
+        $row = $this->db->prepare($sql);
+        $row->execute();
+        $hasil = $row->fetch();
         return $hasil;
     }
 
     public function jual()
     {
-        $sql ="SELECT nota.* , barang.id_barang, barang.nama_barang, barang.harga_beli, member.id_member,
+        $sql = "SELECT nota.* , barang.id_barang, barang.nama_barang, barang.harga_beli, member.id_member,
                 member.nm_member from nota 
                 left join barang on barang.id_barang=nota.id_barang 
                 left join member on member.id_member=nota.id_member 
                 where nota.periode = ?
                 ORDER BY id_nota DESC";
-        $row = $this-> db -> prepare($sql);
-        $row -> execute(array(date('m-Y')));
-        $hasil = $row -> fetchAll();
+        $row = $this->db->prepare($sql);
+        $row->execute(array(date('m-Y')));
+        $hasil = $row->fetchAll();
         return $hasil;
     }
 
     public function periode_jual($periode)
     {
-        $sql ="SELECT nota.* , barang.id_barang, barang.nama_barang, barang.harga_beli, member.id_member,
+        $sql = "SELECT nota.* , barang.id_barang, barang.nama_barang, barang.harga_beli, member.id_member,
                 member.nm_member from nota 
                 left join barang on barang.id_barang=nota.id_barang 
                 left join member on member.id_member=nota.id_member WHERE nota.periode = ? 
                 ORDER BY id_nota ASC";
-        $row = $this-> db -> prepare($sql);
-        $row -> execute(array($periode));
-        $hasil = $row -> fetchAll();
+        $row = $this->db->prepare($sql);
+        $row->execute(array($periode));
+        $hasil = $row->fetchAll();
         return $hasil;
     }
 
@@ -879,56 +1009,56 @@ ORDER BY total_jatuh_tempo DESC, total_segera_jatuh_tempo DESC";
             $tgl1 = explode('0', $ex[2]);
             $tgl = $tgl1[1];
         }
-        $cek = $tgl.' '.$monthName.' '.$ex[0];
+        $cek = $tgl . ' ' . $monthName . ' ' . $ex[0];
         $param = "%{$cek}%";
-        $sql ="SELECT nota.* , barang.id_barang, barang.nama_barang,  barang.harga_beli, member.id_member,
+        $sql = "SELECT nota.* , barang.id_barang, barang.nama_barang,  barang.harga_beli, member.id_member,
                 member.nm_member from nota 
                 left join barang on barang.id_barang=nota.id_barang 
                 left join member on member.id_member=nota.id_member WHERE nota.tanggal_input LIKE ? 
                 ORDER BY id_nota ASC";
-        $row = $this-> db -> prepare($sql);
-        $row -> execute(array($param));
-        $hasil = $row -> fetchAll();
+        $row = $this->db->prepare($sql);
+        $row->execute(array($param));
+        $hasil = $row->fetchAll();
         return $hasil;
     }
 
     public function penjualan()
     {
-        $sql ="SELECT penjualan.* , barang.id_barang, barang.nama_barang, member.id_member,
+        $sql = "SELECT penjualan.* , barang.id_barang, barang.nama_barang, member.id_member,
                 member.nm_member from penjualan 
                 left join barang on barang.id_barang=penjualan.id_barang 
                 left join member on member.id_member=penjualan.id_member
                 ORDER BY id_penjualan";
-        $row = $this-> db -> prepare($sql);
-        $row -> execute();
-        $hasil = $row -> fetchAll();
+        $row = $this->db->prepare($sql);
+        $row->execute();
+        $hasil = $row->fetchAll();
         return $hasil;
     }
 
     public function jumlah()
     {
-        $sql ="SELECT SUM(total) as bayar FROM penjualan";
-        $row = $this -> db -> prepare($sql);
-        $row -> execute();
-        $hasil = $row -> fetch();
+        $sql = "SELECT SUM(total) as bayar FROM penjualan";
+        $row = $this->db->prepare($sql);
+        $row->execute();
+        $hasil = $row->fetch();
         return $hasil;
     }
 
     public function jumlah_nota()
     {
-        $sql ="SELECT SUM(total) as bayar FROM nota";
-        $row = $this -> db -> prepare($sql);
-        $row -> execute();
-        $hasil = $row -> fetch();
+        $sql = "SELECT SUM(total) as bayar FROM nota";
+        $row = $this->db->prepare($sql);
+        $row->execute();
+        $hasil = $row->fetch();
         return $hasil;
     }
 
     public function jml()
     {
-        $sql ="SELECT SUM(harga_beli*stok) as byr FROM barang";
-        $row = $this -> db -> prepare($sql);
-        $row -> execute();
-        $hasil = $row -> fetch();
+        $sql = "SELECT SUM(harga_beli*stok) as byr FROM barang";
+        $row = $this->db->prepare($sql);
+        $row->execute();
+        $hasil = $row->fetch();
         return $hasil;
     }
 }
