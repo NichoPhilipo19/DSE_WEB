@@ -276,12 +276,20 @@ WHERE bb.stok <= u.batas_aman";
     public function dataBahanBakuUntukFormulasi()
     {
         // echo "<pre>";
-        $sql = "SELECT bb.recid,bb.nama_bb, bb.stok, bb.satuan,bb.harga_beli, bb.harga_pasaran_per_satuan, f.qty_per_ton, f.produk_id
+        $sql = "SELECT 
+        bb.recid,
+        bb.nama_bb, 
+        bb.stok, 
+        bb.satuan,
+        bb.harga_beli, 
+        bb.harga_pasaran_per_satuan, 
+        f.qty_per_ton, 
+        f.produk_id
                 FROM tbl_formulasi f
                 JOIN tbl_bahan_baku bb ON f.bahanbaku_id = bb.recid
                 JOIN tbl_product p ON f.produk_id = p.recid
                 WHERE p.status = 1
-                GROUP BY f.bahanbaku_id
+                GROUP BY f.produk_id, f.bahanbaku_id
                 ORDER BY bb.nama_bb
                 ";
 
@@ -777,8 +785,6 @@ ORDER BY tanggal ASC
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        // print_r($rows);
-        // return $rows;
 
         $data = [];
         foreach ($rows as $row) {
@@ -801,6 +807,152 @@ ORDER BY tanggal ASC
         }
         return $data;
     }
+    public function laporan_piutang($tgl_dari = null, $tgl_sampai = null)
+    {
+        // echo "<pre>";
+        // print_r($type);
+        $wherePenjualan1 = "tk.tgl BETWEEN ? AND ?";
+        $wherePembelian2 = "tb.tgl BETWEEN ? AND ?";
+        $params = [$tgl_dari, $tgl_sampai, $tgl_dari, $tgl_sampai];
+
+
+        $sql = "
+            SELECT * FROM (
+    -- PENJUALAN (hanya yang Belum Lunas)
+    SELECT 
+        tk.tgl AS tanggal, 
+        tk.no_invoice AS nomor,
+        'Penjualan' AS tipe, 
+        tk.pengiriman AS keterangan, 
+        tk.total_harga AS Jumlah,
+        tc.nama_client AS nama
+    FROM transaksi_keluar tk
+    JOIN tbl_client tc ON tc.recid = tk.client_id
+    WHERE $wherePenjualan1
+      AND tk.status_pembayaran = 0
+    GROUP BY tk.tgl, tk.no_invoice, tk.pengiriman, tc.nama_client
+
+    UNION ALL
+
+    -- PEMBELIAN (hanya yang belum dibayar / tidak punya bukti_file)
+    SELECT 
+        tb.tgl AS tanggal,
+        tb.no_po AS nomor,
+        'Pembelian' AS tipe,
+        tb.pengiriman AS keterangan,
+        tb.harga AS Jumlah,
+        ts.nama_supplier AS nama
+    FROM tbl_transaksi_bahanbaku tb
+    JOIN tbl_supplier ts ON ts.recid = tb.supp_id
+    WHERE $wherePembelian2
+      AND (tb.bukti_file IS NULL OR tb.bukti_file = '')
+) AS transaksi
+ORDER BY tanggal ASC
+
+
+        ";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $data = [];
+        foreach ($rows as $row) {
+
+            if ($row['tipe'] == "Pembelian") {
+                $data[] = array_merge(
+                    $row,
+                    [
+                        'keterangan_fix' => "Pembelian dari Supplier " . $row["nama"],
+                    ]
+                );
+            } else {
+                $data[] = array_merge(
+                    $row,
+                    [
+                        'keterangan_fix' => "Penjualan ke Client " . $row["nama"],
+                    ]
+                );
+            }
+        }
+        return $data;
+    }
+
+    public function laporan_ppn($tgl_dari, $tgl_sampai)
+    {
+        $sql = "
+        SELECT 
+            tk.no_invoice,
+            tk.tgl,
+            tc.nama_client,
+            SUM(tk.ppn) AS total_ppn,
+            SUM(tk.hargaPerTon * tk.qty) AS total_harga,
+            CASE 
+                WHEN SUM(tk.ppn) != 0 THEN 'Ya'
+                ELSE 'Tidak'
+            END AS pakai_ppn
+        FROM transaksi_keluar tk
+        JOIN tbl_client tc ON tc.recid = tk.client_id
+        WHERE tk.tgl BETWEEN ? AND ?
+        GROUP BY tk.no_invoice, tk.tgl, tc.nama_client
+        ORDER BY tk.tgl ASC
+    ";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$tgl_dari, $tgl_sampai]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function laporan_profit($tgl_dari, $tgl_sampai)
+    {
+        // echo "<pre>";
+        $sql = "
+        SELECT 
+            tk.tgl,
+            tk.no_invoice,
+            c.nama_client,
+            p.nama_product,
+            tk.qty,
+            tk.hargaPerTon,
+            (tk.hargaPerTon * tk.qty) AS total_harga,
+            tk.profit,
+            tk.profit_bahanbaku
+        FROM transaksi_keluar tk
+        JOIN tbl_client c ON c.recid = tk.client_id
+        JOIN tbl_product p ON p.recid = tk.product_id
+        WHERE tk.tgl BETWEEN ? AND ?
+        ORDER BY tk.tgl ASC
+    ";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$tgl_dari, $tgl_sampai]);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        // print_r($rows);
+        return $rows;
+    }
+
+    public function invoice_print($inv)
+    {
+
+        $sql = "
+        SELECT 
+        tk.*, 
+        c.nama_client, c.alamat, 
+        p.nama_product 
+    FROM transaksi_keluar tk
+    JOIN tbl_client c ON c.recid = tk.client_id
+    JOIN tbl_product p ON p.recid = tk.product_id
+    WHERE tk.no_invoice = ?
+        ";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$inv]);
+        $rows = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        // print_r($rows);
+        return $rows;
+    }
+
 
 
 

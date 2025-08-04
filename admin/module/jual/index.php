@@ -302,8 +302,8 @@
  			</div>
  		</div>
  	</div>
- 	<!-- <div class="card mt-4" id="databahanbaku" style="display: none;"> -->
- 	<div class="card mt-4" id="databahanbaku">
+ 	<div class="card mt-4" id="databahanbaku" style="display: none;">
+ 		<!-- <div class="card mt-4" id="databahanbaku"> -->
  		<div class="card-header bg-warning text-dark">
  			<h5><i class="fa fa-cubes"></i>Bahan Baku</h5>
  		</div>
@@ -317,7 +317,7 @@
  							<th>Satuan</th>
  							<th>Harga Beli</th>
  							<th>Harga Jual (Modal)</th>
- 							<th>Kebutuhan Total</th>
+ 							<th>Kebutuhan Per Ton</th>
  							<th>Stok Tersedia</th>
  						</tr>
  					</thead>
@@ -600,13 +600,14 @@
  				const qty = parseFloat(qtyInput?.value || 0);
  				const harga = parseFloat(hargaInput?.value.replace(/[^0-9]/g, '') || 0);
 
- 				console.log('Qty:', qty, '| Harga:', harga, 'hargainpuit:', hargaInput?.value, "data:", dataFormulasi);
-
  				if (!idProduct || qty <= 0 || harga <= 0) return;
+ 				console.log(idProduct)
+ 				console.log('Qty:', qty, '| Harga:', harga, 'hargainpuit:', hargaInput?.value, "data:", dataFormulasi);
 
  				totalPenjualan += harga;
 
  				dataFormulasi.forEach(item => {
+ 					console.log(item, "item")
  					if (item.produkid === parseInt(idProduct)) {
  						if (!kebutuhan[item.nama]) {
  							kebutuhan[item.nama] = {

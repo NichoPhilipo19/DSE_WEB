@@ -40,7 +40,7 @@ $hasil_profil = $lihat->member_edit($id);
         <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
             <div class="bg-white py-2 collapse-inner rounded">
                 <!-- <h6 class="collapse-header">Custom Components:</h6> -->
-                <a class="collapse-item" href="index.php?page=debug">debug</a>
+                <!-- <a class="collapse-item" href="index.php?page=debug">debug</a> -->
                 <a class="collapse-item" href="index.php?page=bahanbaku">Bahan Baku</a>
                 <a class="collapse-item" href="index.php?page=client">Client</a>
                 <a class="collapse-item" href="index.php?page=inventaris">Inventaris</a>
@@ -67,8 +67,8 @@ $hasil_profil = $lihat->member_edit($id);
                 <a class="collapse-item" href="index.php?page=transaksi_bahan_baku">Transaksi Bahan Baku</a>
                 <a class="collapse-item" href="index.php?page=jual">Transaksi Jual</a>
                 <a class="collapse-item" href="index.php?page=penjualan">Data Transaksi Penjualan</a>
-                <a class="collapse-item" href="index.php?page=laporan">Laporan Penjualan</a>
-                <a class="collapse-item" href="index.php?page=laporancoba">Laporan Coba</a>
+                <!-- <a class="collapse-item" href="index.php?page=laporan">Laporan Penjualan</a> -->
+                <a class="collapse-item" href="index.php?page=laporancoba">Laporan</a>
             </div>
         </div>
     </li>
@@ -119,10 +119,10 @@ $hasil_profil = $lihat->member_edit($id);
                     <!-- Dropdown - User Information -->
                     <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
                         aria-labelledby="userDropdown">
-                        <a class="dropdown-item" href="index.php?page=user">
+                        <!-- <a class="dropdown-item" href="index.php?page=user">
                             <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
                             Profile
-                        </a>
+                        </a> -->
                         <div class="dropdown-divider"></div>
                         <a class="dropdown-item" href="logout.php">
                             <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>

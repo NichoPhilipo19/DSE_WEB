@@ -22,10 +22,11 @@ $selectedType = $_GET['type'] ?? '';
                             <option value="penjualan product" <?= ($_GET['jenis'] ?? '') === 'penjualan product' ? 'selected' : '' ?>>Penjualan Product</option>
                             <option value="pembelian" <?= ($_GET['jenis'] ?? '') === 'pembelian' ? 'selected' : '' ?>>Pembelian Bahan Baku</option>
                             <option value="stock bahan baku" <?= ($_GET['jenis'] ?? '') === 'stock bahan baku' ? 'selected' : '' ?>>Stock Bahan Baku</option>
-                            <option value="piutang" <?= ($_GET['jenis'] ?? '') === 'piutang' ? 'selected' : '' ?>>Piutang</option>
                             <option value="uang jalan" <?= ($_GET['jenis'] ?? '') === 'uang jalan' ? 'selected' : '' ?>>Uang Jalan Supir</option>
                             <option value="pemasukan pengeluaran" <?= ($_GET['jenis'] ?? '') === 'pemasukan pengeluaran' ? 'selected' : '' ?>>Pemasukan & Pengeluaran</option>
-                            <option value="pemasukan pengeluaran" <?= ($_GET['jenis'] ?? '') === 'piutang' ? 'selected' : '' ?>>Pemasukan & Pengeluaran</option>
+                            <option value="piutang" <?= ($_GET['jenis'] ?? '') === 'piutang' ? 'selected' : '' ?>>Piutang</option>
+                            <option value="ppn" <?= ($_GET['jenis'] ?? '') === 'ppn' ? 'selected' : '' ?>>PPn</option>
+                            <option value="profit" <?= ($_GET['jenis'] ?? '') === 'profit' ? 'selected' : '' ?>>Profit</option>
                         </select>
                     </div>
                     <div class="form-group col-md-3">
@@ -92,6 +93,12 @@ if ($jenis && $tgl_dari && $tgl_sampai) {
         $data = $lihat->laporan_uang_jalan_supir($tgl_dari, $tgl_sampai);
     } elseif ($jenis == 'pemasukan pengeluaran') {
         $data = $lihat->laporan_pemasukan_pengeluaran($tgl_dari, $tgl_sampai);
+    } elseif ($jenis == 'piutang') {
+        $data = $lihat->laporan_piutang($tgl_dari, $tgl_sampai);
+    } elseif ($jenis == 'ppn') {
+        $data = $lihat->laporan_ppn($tgl_dari, $tgl_sampai);
+    } elseif ($jenis == 'profit') {
+        $data = $lihat->laporan_profit($tgl_dari, $tgl_sampai);
     }
 } else {
     if ($jenis == 'stock bahan baku') {
@@ -211,7 +218,93 @@ if ($jenis && $tgl_dari && $tgl_sampai) {
 
 
             <?php elseif ($jenis == 'stock bahan baku'): ?>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Nama Bahan Baku</th>
+                            <th>Stok Tersedia</th>
+                            <th>Satuan (UOM)</th>
+                            <th>Minimal Stok</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php
+                        // $data = $lihat->laporan_stok_bahan_baku();
+                        $no = 1;
+                        foreach ($data as $row): ?>
+                            <tr <?= $row['stok'] < $row['batas_aman'] ? 'style="background-color: #f8d7da;"' : '' ?>>
+                                <td><?= $no++ ?></td>
+                                <td><?= $row['nama_bb'] ?></td>
+                                <td><?= $row['stok'] ?></td>
+                                <td><?= $row['kode_uom'] ?></td>
+                                <td><?= $row['batas_aman'] ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
             <?php elseif ($jenis == 'uang jalan'): ?>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>No Invoice</th>
+                            <th>Tanggal</th>
+                            <th>Client</th>
+                            <th>Pengiriman</th>
+                            <th>Biaya Ongkir</th>
+                            <th>Ditanggung Oleh</th>
+                            <th>Total Harga</th>
+                            <th>Status Pembayaran</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php
+                        $no = 1;
+                        $data = $lihat->laporan_uang_jalan_supir($tgl_dari, $tgl_sampai);
+                        $total_ongkir_client_count = 0;
+                        $total_ongkir_subsidi_count = 0;
+                        $total_ongkir_client = 0;
+                        $total_ongkir_subsidi = 0;
+                        foreach ($data as $row):
+                            $status = $row['status_pembayaran'] == 1 ? 'Lunas' : 'Belum Lunas';
+                            $penanggung = $row['penanggung_ongkir'] == 1 ? 'Perusahaan (Subsidi)' : 'Client';
+
+                            // hitung total berdasarkan penanggung ongkir
+                            if ($row['penanggung_ongkir'] == 1) {
+                                $total_ongkir_subsidi += $row['ongkir'];
+                                $total_ongkir_subsidi_count += 1;
+                            } else {
+                                $total_ongkir_client += $row['ongkir'];
+                                $total_ongkir_client_count +=  1;
+                            }
+                        ?>
+                            <tr>
+                                <td><?= $no++ ?></td>
+                                <td><?= $row['no_invoice'] ?></td>
+                                <td><?= date('d-m-Y', strtotime($row['tgl'])) ?></td>
+                                <td><?= $row['nama_client'] ?></td>
+                                <td><?= $row['pengiriman'] ?></td>
+                                <td>Rp <?= number_format($row['ongkir']) ?></td>
+                                <td><?= $penanggung ?></td>
+                                <td>Rp <?= number_format($row['total_harga']) ?></td>
+                                <td><?= $status ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                        <tr style="font-weight:bold; background:#f0f0f0;">
+                            <td colspan="5" align="right">Subtotal Ongkir (Dibayar Client) (<? echo $total_ongkir_client_count ?>)</td>
+                            <td colspan="4">Rp <?= number_format($total_ongkir_client) ?></td>
+                        </tr>
+                        <tr style="font-weight:bold; background:#f0f0f0;">
+                            <td colspan="5" align="right">Subtotal Ongkir (Subsidi Perusahaan) (<? echo $total_ongkir_subsidi_count ?>)</td>
+                            <td colspan="4">Rp <?= number_format($total_ongkir_subsidi) ?></td>
+                        </tr>
+                        <tr style="font-weight:bold; background:#d0ffd0;">
+                            <td colspan="5" align="right">Grand Total Ongkir (Semua)</td>
+                            <td colspan="4">Rp <?= number_format($total_ongkir_client + $total_ongkir_subsidi) ?></td>
+                        </tr>
+                    </tbody>
+                </table>
             <?php elseif ($jenis == 'pemasukan pengeluaran'): ?>
                 <table class="table table-bordered">
                     <thead>
@@ -259,6 +352,136 @@ if ($jenis && $tgl_dari && $tgl_sampai) {
                         </tr>
                     </tfoot>
                 </table>
+
+            <?php elseif ($jenis == 'piutang'): ?>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Tanggal</th>
+                            <th>No Transaksi</th>
+                            <th>Tipe</th>
+                            <th>Keterangan</th>
+                            <th>Jumlah</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php
+                        // $from = $_GET['from'] ?? date('Y-m-01');
+                        // $to = $_GET['to'] ?? date('Y-m-d');
+                        // $data = $lihat->laporan_debit_kredit($from, $to);
+
+                        $total = 0;
+
+                        foreach ($data as $row):
+                            $total += $row['Jumlah'];
+                        ?>
+                            <tr>
+                                <td><?= date('d-m-Y', strtotime($row['tanggal'])) ?></td>
+                                <td><?= $row['nomor'] ?></td>
+                                <td><?= $row['tipe'] ?></td>
+                                <td><?= $row['keterangan_fix'] ?></td>
+                                <td>Rp <?= number_format($row['Jumlah']) ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                    <tfoot>
+                        <tr style="font-weight:bold; background:#e0ffe0;">
+                            <td colspan="4" align="right">Total Piutang</td>
+                            <td colspan="2">Rp <?= number_format($total) ?></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            <?php elseif ($jenis == 'ppn'): ?>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Tanggal</th>
+                            <th>No Invoice</th>
+                            <th>Nama Client</th>
+                            <th>Total Harga</th>
+                            <th>PPn (11%)</th>
+                            <th>Pakai PPn</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php
+                        // $from = $_GET['from'] ?? date('Y-m-01');
+                        // $to = $_GET['to'] ?? date('Y-m-d');
+                        // $data = $lihat->laporan_debit_kredit($from, $to);
+
+                        $total = 0;
+
+                        $no = 1;
+                        foreach ($data as $row):
+                            $total += $row['total_ppn'];
+                        ?>
+                            <tr>
+                                <td><?= $no++ ?></td>
+                                <td><?= date('d-m-Y', strtotime($row['tgl'])) ?></td>
+                                <td><?= $row['no_invoice'] ?></td>
+                                <td><?= $row['nama_client'] ?></td>
+                                <td>Rp <?= number_format($row['total_harga']) ?></td>
+                                <td>Rp <?= number_format($row['total_ppn']) ?></td>
+                                <td><?= $row['pakai_ppn'] ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                    <tfoot>
+                        <tr style="font-weight:bold; background:#e0ffe0;">
+                            <td colspan="5" align="right">Total PPn</td>
+                            <td colspan="2">Rp <?= number_format($total) ?></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            <?php elseif ($jenis == 'profit'): ?>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Tanggal</th>
+                            <th>No Invoice</th>
+                            <th>Client</th>
+                            <th>Produk</th>
+                            <th>Qty (Ton)</th>
+                            <th>Harga per Ton</th>
+                            <th>Total Harga</th>
+                            <th>Profit</th>
+                            <th>Profit Bahan Baku</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php
+                        // $data = $lihat->laporan_profit('2025-07-01', '2025-07-31');
+                        $total_profit = 0;
+                        $total_profit_bb = 0;
+
+                        foreach ($data as $no => $row) {
+                            $total_profit += $row['profit'];
+                            $total_profit_bb += $row['profit_bahanbaku'];
+                            echo "<tr>
+                <td>" . ($no + 1) . "</td>
+                <td>" . date('d-m-Y', strtotime($row['tgl'])) . "</td>
+                <td>{$row['no_invoice']}</td>
+                <td>{$row['nama_client']}</td>
+                <td>{$row['nama_produk']}</td>
+                <td align='right'>" . number_format($row['qty'], 2) . "</td>
+                <td align='right'>Rp " . number_format($row['hargaPerTon'], 0) . "</td>
+                <td align='right'>Rp " . number_format($row['total_harga'], 0) . "</td>
+                <td align='right'>Rp " . number_format($row['profit'], 0) . "</td>
+                <td align='right'>Rp " . number_format($row['profit_bahanbaku'], 0) . "</td>
+            </tr>";
+                        }
+                        ?>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="8" align="right">TOTAL</td>
+                            <td align="right">Rp <?= number_format($total_profit, 0); ?></td>
+                            <td align="right">Rp <?= number_format($total_profit_bb, 0); ?></td>
+                        </tr>
+                    </tfoot>
+                </table>
             <?php endif; ?>
 
 
@@ -303,6 +526,12 @@ if ($jenis && $tgl_dari && $tgl_sampai) {
                 namaFile = "laporan_uang_jalan.php"
             } else if (x == "pemasukan pengeluaran") {
                 namaFile = "laporan_pemasukan_pengeluaran.php"
+            } else if (x == "piutang") {
+                namaFile = "laporan_piutang.php"
+            } else if (x == "ppn") {
+                namaFile = "laporan_ppn.php"
+            } else if (x == "profit") {
+                namaFile = "laporan_profit.php"
             }
             console.log(x)
             // URL encode (safe)
@@ -321,6 +550,9 @@ if ($jenis && $tgl_dari && $tgl_sampai) {
             var isStock = jenis === 'stock bahan baku';
             var isUangJalan = jenis === 'uang jalan';
             var isDebitKredit = jenis === 'pemasukan pengeluaran';
+            var isPiutang = jenis === 'piutang';
+            var isPpn = jenis === 'ppn';
+            var isProfit = jenis === 'profit';
 
             if (isSell) {
 
@@ -347,6 +579,24 @@ if ($jenis && $tgl_dari && $tgl_sampai) {
                 $('#client_id').prop('disabled', true);
 
             } else if (isDebitKredit) {
+
+                $('#from').prop('disabled', false);
+                $('#to').prop('disabled', false);
+                $('#client_id').prop('disabled', true);
+
+            } else if (isPiutang) {
+
+                $('#from').prop('disabled', false);
+                $('#to').prop('disabled', false);
+                $('#client_id').prop('disabled', true);
+
+            } else if (isPpn) {
+
+                $('#from').prop('disabled', false);
+                $('#to').prop('disabled', false);
+                $('#client_id').prop('disabled', true);
+
+            } else if (isProfit) {
 
                 $('#from').prop('disabled', false);
                 $('#to').prop('disabled', false);
@@ -368,6 +618,9 @@ if ($jenis && $tgl_dari && $tgl_sampai) {
             var isStock = jenis === 'stock bahan baku';
             var isUangJalan = jenis === 'uang jalan';
             var isDebitKredit = jenis === 'pemasukan pengeluaran';
+            var isPiutang = jenis === 'piutang';
+            var isPpn = jenis === 'ppn';
+            var isProfit = jenis === 'profit';
 
             // $('#from').prop('disabled', isStock);
             // $('#to').prop('disabled', isStock);
@@ -384,6 +637,15 @@ if ($jenis && $tgl_dari && $tgl_sampai) {
                 $('#from, #to').attr('required');
                 $('#client_id').removeAttr('required');
             } else if (isDebitKredit) {
+                $('#from, #to').attr('required');
+                $('#client_id').removeAttr('required');
+            } else if (isPiutang) {
+                $('#from, #to').attr('required');
+                $('#client_id').removeAttr('required');
+            } else if (isPpn) {
+                $('#from, #to').attr('required');
+                $('#client_id').removeAttr('required');
+            } else if (isProfit) {
                 $('#from, #to').attr('required');
                 $('#client_id').removeAttr('required');
             } else {

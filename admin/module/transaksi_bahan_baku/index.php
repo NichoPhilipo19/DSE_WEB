@@ -177,7 +177,8 @@ $totalPages = ceil($totalData / $limit);
                                 <?php if (!empty($row['no_invoice']) && empty($row['bukti_file'])) { ?>
                                     <button
                                         class="btn btn-info btn-xs btn-bukti-bayar"
-                                        data-id="<?= $row['recid']; ?>">
+                                        data-id="<?= $row['recid']; ?>"
+                                        data-harga="<?= $row['harga']; ?>">
                                         Bukti Bayar
                                     </button>
 
@@ -346,6 +347,7 @@ $totalPages = ceil($totalData / $limit);
                 </div>
                 <div class="modal-body">
                     <input type="hidden" name="recid" id="bukti-recid">
+                    <input type="hidden" name="hargaDeal" id="hargaDeal">
 
                     <div class="form-group">
                         <label for="tgl_bayar">Tanggal Pembayaran</label>
@@ -363,7 +365,7 @@ $totalPages = ceil($totalData / $limit);
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="submit" class="btn btn-success" onclick="this.disabled=true; this.innerText='Submitting...'; this.form.submit();">Submit</button>
+                    <button type="submit" id="submit-bayar" class="btn btn-success" onclick="this.disabled=true; this.innerText='Submitting...'; this.form.submit();">Submit</button>
 
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
                 </div>
@@ -498,8 +500,19 @@ $totalPages = ceil($totalData / $limit);
         // Saat tombol Bukti Bayar diklik, isi hidden input recid
         $('.btn-bukti-bayar').click(function() {
             const recid = $(this).data('id');
+            const harga = $(this).data('harga');
             $('#bukti-recid').val(recid);
+            $('#hargaDeal').val(harga);
             $('#modalBuktiBayar').modal('show');
+            $('#submit-bayar').prop('disabled', true);
+        });
+        $('#jumlah_bayar').on('change', function() {
+            const jumlah = $(this).val().replace(/[^,\d]/g, '');
+            const harga = parseFloat($('#hargaDeal').val());
+            if (jumlah == harga) {
+
+                $('#submit-bayar').prop('disabled', false);
+            }
         });
 
         $('.btn-terima').click(function() {

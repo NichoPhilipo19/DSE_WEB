@@ -71,7 +71,10 @@ $lihat = new view($config);
         <tbody>
             <?php
             $no = 1;
-            $data = $lihat->laporan_uang_jalan_supir($tgl_dari, $tgl_sampai);
+
+                                    $from = $_GET['from'] ?? date('Y-m-01');
+                                    $to = $_GET['to'] ?? date('Y-m-d');
+                                    $data = $lihat->laporan_uang_jalan_supir($from, $to);
             $total_ongkir_client_count = 0;
             $total_ongkir_subsidi_count = 0;
             $total_ongkir_client = 0;

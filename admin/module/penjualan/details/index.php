@@ -79,8 +79,16 @@
                      <div class="col-sm-2">
                          <h5>No Invoice</h5>
                      </div>
-                     <div class="col-sm-10">
+                     <div class="col-sm-8">
                          : <?php echo $id; ?>
+                     </div>
+                     <div class="col-sm-2 text-right">
+                         <a id="print" href="invoice.php?page=invoice&inv=<?= $id; ?>" target="_blank">
+                             <button
+                                 class="btn btn-secondary">
+                                 🖨 Print Invoice
+                             </button>
+                         </a>
                      </div>
                  </div>
              </div>
@@ -364,8 +372,8 @@
              </div>
          </div>
      </div>
-     <!-- <div class="card mt-4" id="databahanbaku" style="display: none;"> -->
-     <div class="card mt-4" id="databahanbaku">
+     <div class="card mt-4" id="databahanbaku" style="display: none;">
+         <!-- <div class="card mt-4" id="databahanbaku"> -->
          <div class="card-header bg-warning text-dark">
              <h5><i class="fa fa-cubes"></i>Bahan Baku</h5>
          </div>

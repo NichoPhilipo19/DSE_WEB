@@ -98,6 +98,7 @@ $transaksi = $lihat->transaksi_penjualan_filter_limit($tgl_dari, $tgl_sampai, $l
                 <?php
                 $no = 1;
                 foreach ($transaksi as $row):
+                    $total = ($row['hargaPerTon'] * $row['qty']) + $row['ppn'] + ($row['penanggung_ongkir'] == 1 ? 0 : $row['ongkir']);
                 ?>
                     <tr>
                         <td><?= $no++ ?></td>
@@ -105,7 +106,7 @@ $transaksi = $lihat->transaksi_penjualan_filter_limit($tgl_dari, $tgl_sampai, $l
                         <td><?= $row['nama_client'] ?></td>
                         <td><?= date('d-m-Y', strtotime($row['tgl'])) ?></td>
                         <td><?= $row['qty'] ?></td>
-                        <td>Rp <?= number_format($row['total_harga']) ?></td>
+                        <td>Rp <?= number_format($total) ?></td>
                         <td><?= $row['status_pembayaran'] == 1 ? 'Lunas' : 'Belum Lunas' ?></td>
 
 
@@ -185,8 +186,14 @@ $transaksi = $lihat->transaksi_penjualan_filter_limit($tgl_dari, $tgl_sampai, $l
                                     Sudah Diterima
                                 </button>
                             <?php } ?>
-
+                            <!-- <a id="print" href="laporan_penjualan.php?page=laporan" target="_blank">🖨 Lihat & Print Laporan</a> -->
+                            <a id="print" href="invoice.php?page=invoice&inv=<?= $row['no_invoice']; ?>" target="_blank">
+                                <button
+                                    class="btn btn-secondary">
+                                    🖨 Print Invoice
+                                </button>
                             </a>
+
                         </td>
                     </tr>
                 <?php endforeach ?>
